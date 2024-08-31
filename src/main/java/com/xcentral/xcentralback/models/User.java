@@ -1,41 +1,38 @@
 package com.xcentral.xcentralback.models;
 
 import java.util.List;
-
-//import jakarta.annotation.sql.DataSourceDefinition;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.Table;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
+@Table(name = "users")
 public class User {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String username;
     private String password;
     private String email;
     private String role;
-   
 
-    // Default constructor
-    public User() {}
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Submission> submissions;
 
-    // Constructor that accepts a String argument
-    public User(String username) {
-        this.username = username;
-    }
-
-    // Generate getters and setters
-    public long getId() {
+    // Getters and setters
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -71,4 +68,11 @@ public class User {
         this.role = role;
     }
 
+    public List<Submission> getSubmissions() {
+        return submissions;
+    }
+
+    public void setSubmissions(List<Submission> submissions) {
+        this.submissions = submissions;
+    }
 }

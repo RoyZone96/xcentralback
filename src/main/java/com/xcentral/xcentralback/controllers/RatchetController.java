@@ -8,19 +8,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
-import com.xcentral.xcentralback.models.Rachet;
-import com.xcentral.xcentralback.services.RachetService;
+import com.xcentral.xcentralback.models.Ratchet;
+import com.xcentral.xcentralback.services.RatchetService;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
-@RequestMapping("/rachets")
-public class RachetController {
+@RequestMapping("/ratchets")
+public class RatchetController {
     
 @Autowired
-private RachetService rachetService;
+private RatchetService ratchetService;
 
-@GetMapping("/rachetlist")
-public List<Rachet> getAllRachets() {
-    return rachetService.getAllRachets();
+@GetMapping("/ratchetlist")
+public List<Ratchet> getAllRatchets() {
+    return ratchetService.getAllRatchets();
 }
 }
