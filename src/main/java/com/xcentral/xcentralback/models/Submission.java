@@ -43,6 +43,9 @@ public class Submission {
     @Column(name = "user_id")
     private long userId;
 
+    @Column(name = "username")
+    private String username;
+
     @PrePersist
     protected void onCreate() {
         dateCreated = new Date();
@@ -140,5 +143,13 @@ public class Submission {
 
     public void setUserId(long userId) {
         this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

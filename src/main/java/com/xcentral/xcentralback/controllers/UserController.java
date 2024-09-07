@@ -1,22 +1,26 @@
 package com.xcentral.xcentralback.controllers;
 
+import com.xcentral.xcentralback.models.AuthRequest;
 import com.xcentral.xcentralback.models.User;
 import com.xcentral.xcentralback.services.UsersService;
-import com.xcentral.xcentralback.exceptions.GlobalExceptionHandler;
 import com.xcentral.xcentralback.repos.UserRepo;
+import com.xcentral.xcentralback.services.JWTServices;
+import com.xcentral.xcentralback.exceptions.UserNotFoundException;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
-import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -26,15 +30,39 @@ import org.springframework.web.bind.annotation.PostMapping;
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/users")
 public class UserController {
+
+    @Autowired
+    UserRepo userRepo;
+
     
     @Autowired
     UsersService usersService;
+
+    @Autowired
+    JWTServices jwtServices;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
 
     @PostMapping("/newuser")
     public String addNewUSer(@RequestBody User user) {
         return usersService.addNewUser(user);
     }
     
+
+    @PostMapping("/authenticate")
+    public String authenticateAndGetToken (@RequestBody AuthRequest authRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+        if(authentication.isAuthenticated()) {
+            return jwtServices.generateToken(authRequest.getUsername());
+        } else {
+            throw new UserNotFoundException("User not found");
+        }
+    }
 
     @GetMapping("/userlist")
     public List<User> getAllUsers() {
