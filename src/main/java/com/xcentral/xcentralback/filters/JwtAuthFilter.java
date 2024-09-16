@@ -1,8 +1,7 @@
 package com.xcentral.xcentralback.filters;
 
+import com.xcentral.xcentralback.configurations.UserInfoUserDetailsService;
 import com.xcentral.xcentralback.services.JWTServices;
-import com.xcentral.xcentralback.services.UserInfoUserDetailsService;   
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

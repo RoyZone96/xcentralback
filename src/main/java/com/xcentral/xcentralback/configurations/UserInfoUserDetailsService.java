@@ -1,7 +1,6 @@
-package com.xcentral.xcentralback.services;
+package com.xcentral.xcentralback.configurations;
 
 import com.xcentral.xcentralback.models.User;
-import com.xcentral.xcentralback.models.UserInfoUserDetails;
 import com.xcentral.xcentralback.repos.UserRepo;
 
 import java.util.Optional;

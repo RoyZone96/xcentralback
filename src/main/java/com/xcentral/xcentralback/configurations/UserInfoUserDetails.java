@@ -1,9 +1,11 @@
-package com.xcentral.xcentralback.models;
+package com.xcentral.xcentralback.configurations;
 
 import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.xcentral.xcentralback.models.User;
 
 public class UserInfoUserDetails implements UserDetails {
 
