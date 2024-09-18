@@ -14,7 +14,7 @@ public class Ratchet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String rachet;
+    private String ratchet;
 
     // Getter for id
     public Long getId() {
@@ -24,7 +24,7 @@ public class Ratchet {
  
     // Getter for rachetName
     public String getRachet() {
-        return rachet;
+        return ratchet;
     }
 
 }

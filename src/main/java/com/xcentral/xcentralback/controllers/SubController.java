@@ -19,10 +19,7 @@ public class SubController {
     @Autowired
     private SubService subService;
 
-    @PostMapping("/newsub")
-    public String addNewSubmission(@RequestBody Submission submission) {
-        return subService.addNewSubmission(submission);
-    }
+   
 
     @GetMapping("/sublist")
     public List<Submission> getAllSubmissions() {
@@ -76,11 +73,15 @@ public class SubController {
         return subService.getSubmissionByDateUpdated(dateUpdated);
     }
 
-    @GetMapping("/user_id/{user_id}")
-    public List<Submission> getSubmissionsByUserId(@PathVariable long userId) {
+    @GetMapping("sublist/user_id/{user_id}")
+    public List<Submission> getSubmissionsByUserId(@PathVariable("user_id") long userId) {
         return subService.getSubmissionsByUserId(userId);
     }
-    
+
+     @PostMapping("/newsub")
+    public String addNewSubmission(@RequestBody Submission submission) {
+        return subService.addNewSubmission(submission);
+    }
 
     @DeleteMapping("/{id}")
     public void deleteSubmission(@PathVariable Long id) {
