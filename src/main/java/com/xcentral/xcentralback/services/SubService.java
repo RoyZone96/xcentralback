@@ -43,8 +43,8 @@ public class SubService {
                 .orElseThrow(() -> new SubmissionNotFoundException(id));
     }
 
-    public List<Submission> getSubmissionsByUserId(Long userId) {
-        return subRepo.findByUserId(userId);
+    public List<Submission> getSubmissionsByUsername(String username) {
+        return subRepo.findByUsername(username);
     }
 
     public List<Submission> getSubmissionByBlade(String blade) {

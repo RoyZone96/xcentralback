@@ -73,10 +73,11 @@ public class SubController {
         return subService.getSubmissionByDateUpdated(dateUpdated);
     }
 
-    @GetMapping("sublist/user_id/{user_id}")
-    public List<Submission> getSubmissionsByUserId(@PathVariable("user_id") long userId) {
-        return subService.getSubmissionsByUserId(userId);
-    }
+    @GetMapping("sublist/username/{username}")
+   public List<Submission> getSubmissionsByUsername(@PathVariable String username) {
+        return subService.getSubmissionsByUsername(username);
+   }
+
 
      @PostMapping("/newsub")
     public String addNewSubmission(@RequestBody Submission submission) {

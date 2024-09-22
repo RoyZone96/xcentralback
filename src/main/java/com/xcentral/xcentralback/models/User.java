@@ -23,7 +23,7 @@ public class User {
     private String email;
     private String role;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Submission> submissions;
 

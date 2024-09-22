@@ -14,6 +14,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Temporal;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.util.Date;
 
 @Entity
@@ -36,12 +38,9 @@ public class Submission {
     private Date dateUpdated;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @JsonBackReference
     private User user;
 
-    @Column(name = "user_id")
-    private long userId;
 
     @Column(name = "username")
     private String username;
@@ -137,13 +136,7 @@ public class Submission {
         this.user = user;
     }
 
-    public long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
+   
 
     public String getUsername() {
         return username;

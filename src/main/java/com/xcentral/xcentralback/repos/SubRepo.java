@@ -18,5 +18,5 @@ public interface SubRepo extends JpaRepository<Submission, Long> {
     List<Submission> findByWinRateAvg(double winRateAvg);
     List<Submission> findByDateCreated(Date dateCreated);
     List<Submission> findByDateUpdated(Date dateUpdated);
-    List<Submission> findByUserId(long userId);
+    List<Submission> findByUsername(String username);
 }
