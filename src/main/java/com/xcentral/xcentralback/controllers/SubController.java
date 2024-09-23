@@ -84,12 +84,12 @@ public class SubController {
         return subService.addNewSubmission(submission);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public void deleteSubmission(@PathVariable Long id) {
         subService.deleteSubmission(id);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public void updateSubmission(@PathVariable Long id, @RequestBody Submission updatedSubmission) throws SubmissionNotFoundException {
         subService.updateSubmission(id, updatedSubmission);
     }
