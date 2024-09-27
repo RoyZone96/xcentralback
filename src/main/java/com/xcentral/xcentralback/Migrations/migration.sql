@@ -1,6 +1,11 @@
+-- Migration to create xcentral database
+CREATE DATABASE IF NOT EXISTS xcentral;
+USE xcentral;
+
+
 -- Migration to add columns for id and name in blades table
 -- Migration to create blades table
-CREATE TABLE blades_parts (
+CREATE TABLE blades_parts IF NOT EXISTS xcentral(
     id INT PRIMARY KEY AUTO_INCREMENT,
     blade_name VARCHAR(255)
 );
@@ -33,7 +38,7 @@ INSERT INTO blades_parts (id, blade_name) VALUES
 ('23', 'Disc Ball');
 
 -- Migration to create ratchets table
-CREATE TABLE ratchet (
+CREATE TABLE ratchet IF NOT EXISTS xcentral(
     id INT PRIMARY KEY AUTO_INCREMENT,
     ratchet VARCHAR(255)
 );
@@ -54,7 +59,7 @@ INSERT INTO ratchet (id, ratchet) VALUES
 ('14', '5-70');
 
 -- Migration to create bits table
-CREATE TABLE bittype (
+CREATE TABLE bittype IF NOT EXISTS xcentral(
     id INT PRIMARY KEY AUTO_INCREMENT,
     bit VARCHAR(255)
 );
@@ -86,7 +91,7 @@ INSERT INTO bittype (id, bit) VALUES
 ('22', 'Hexa'),
 ('23', 'Disc Ball');
 
-CREATE TABLE users (
+CREATE TABLE users IF NOT EXISTS xcentral(
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -95,7 +100,7 @@ CREATE TABLE users (
 );
 
 
-CREATE TABLE submission (
+CREATE TABLE submission IF NOT EXISTS xcentral(
      submission_id INT PRIMARY KEY AUTO_INCREMENT,
      blade VARCHAR(50) NOT NULL,
      ratchet VARCHAR(50) NOT NULL,
