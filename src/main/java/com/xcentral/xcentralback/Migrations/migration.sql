@@ -1,6 +1,5 @@
 -- Migration to create xcentral database
-CREATE DATABASE IF NOT EXISTS xcentral;
-USE xcentral;
+
 
 
 -- Migration to add columns for id and name in blades table
