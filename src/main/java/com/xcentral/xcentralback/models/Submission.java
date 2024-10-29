@@ -30,6 +30,8 @@ public class Submission {
     private int wins;
     private int losses;
     private double winRateAvg;
+    private int points;
+    private double pointsAvg;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateCreated;
@@ -136,7 +138,21 @@ public class Submission {
         this.user = user;
     }
 
-   
+   public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    public double getPointsAvg() {
+        return pointsAvg;
+    }
+
+    public void setPointsAvg(double pointsAvg) {
+        this.pointsAvg = pointsAvg;
+    }
 
     public String getUsername() {
         return username;
