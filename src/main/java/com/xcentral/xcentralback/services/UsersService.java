@@ -28,6 +28,29 @@ public class UsersService {
         return "New user added successfully!";
     }
 
+    public String updateUserPassword(Long id, String oldPassword, String newPassword, String confirmPassword) {
+        if (!newPassword.equals(confirmPassword)) {
+            throw new IllegalArgumentException("New password and confirm password do not match.");
+        }
+
+        User user = userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        if (passwordEncoder.matches(oldPassword, user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepo.save(user);
+            return "Password updated successfully!";
+        } else {
+            throw new IllegalArgumentException("Old password is incorrect.");
+        }
+    }
+
+    public String resetUserPassword(Long id, String newPassword) {
+        User user = userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+        return "Password reset successfully!";
+    }
+
     public List<User> getAllUsers() {
         return userRepo.findAll();
     }
