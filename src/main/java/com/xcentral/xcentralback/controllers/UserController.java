@@ -1,6 +1,7 @@
 package com.xcentral.xcentralback.controllers;
 
 import com.xcentral.xcentralback.models.PasswordRequest;
+import com.xcentral.xcentralback.models.EmailRequest;
 import com.xcentral.xcentralback.models.User;
 import com.xcentral.xcentralback.services.UsersService;
 import com.xcentral.xcentralback.repos.UserRepo;
@@ -59,16 +60,20 @@ public class UserController {
             throw new UserNotFoundException("User not found");
         }
     }
-
-    @PutMapping("/users/{id}/update-password")
-    public String updatePassword(@PathVariable Long id, @RequestBody PasswordRequest passwordRequest) {
-        return usersService.updateUserPassword(id, passwordRequest.getOldPassword(), passwordRequest.getNewPassword(),
+    @PutMapping("/users/{username}/update-password")
+    public String updatePassword(@PathVariable String username, @RequestBody PasswordRequest passwordRequest) {
+        return usersService.updateUserPassword(username, passwordRequest.getOldPassword(), passwordRequest.getNewPassword(),
                 passwordRequest.getConfirmPassword());
     }
 
-    @PutMapping("/users/{id}/reset-password")
-    public String resetPassword(@PathVariable Long id, @RequestParam String newPassword) {
-        return usersService.resetUserPassword(id, newPassword);
+    @PutMapping("/users/{username}/update-email")
+    public String updateEmail(@PathVariable String username, @RequestBody EmailRequest emailUpdateRequest) {
+        return usersService.updateUserEmail(username, emailUpdateRequest.getNewEmail());
+    }
+
+    @PutMapping("/users/{username}/reset-password")
+    public String resetPassword(@PathVariable String username, @RequestBody PasswordRequest passwordRequest) {
+        return usersService.resetUserPassword(username, passwordRequest.getNewPassword());
     }
 
     @GetMapping("/users/userlist")
