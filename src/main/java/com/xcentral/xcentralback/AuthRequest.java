@@ -1,4 +1,4 @@
-package com.xcentral.xcentralback.models;
+package com.xcentral.xcentralback;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
