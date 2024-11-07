@@ -5,8 +5,8 @@ import com.xcentral.xcentralback.models.EmailRequest;
 import com.xcentral.xcentralback.models.User;
 import com.xcentral.xcentralback.services.UsersService;
 import com.xcentral.xcentralback.repos.UserRepo;
+import com.xcentral.xcentralback.services.AuthRequest;
 import com.xcentral.xcentralback.services.JWTServices;
-import com.xcentral.xcentralback.AuthRequest;
 import com.xcentral.xcentralback.exceptions.UserNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
