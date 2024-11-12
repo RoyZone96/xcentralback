@@ -9,6 +9,7 @@ import com.xcentral.xcentralback.services.AuthRequest;
 import com.xcentral.xcentralback.services.JWTServices;
 import com.xcentral.xcentralback.exceptions.UserNotFoundException;
 
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -61,7 +62,7 @@ public class UserController {
         }
     }
     @PutMapping("/users/{username}/update-password")
-    public String updatePassword(@PathVariable String username, @RequestBody PasswordRequest passwordRequest) {
+    public String updatePassword(@PathVariable String username, @Valid @RequestBody PasswordRequest passwordRequest) {
         return usersService.updateUserPassword(username, passwordRequest.getOldPassword(), passwordRequest.getNewPassword(),
                 passwordRequest.getConfirmPassword());
     }

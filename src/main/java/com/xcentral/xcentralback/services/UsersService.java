@@ -29,6 +29,10 @@ public class UsersService {
     }
 
     public String updateUserPassword(String username, String oldPassword, String newPassword, String confirmPassword) {
+        if (newPassword == null || confirmPassword == null) {
+            throw new IllegalArgumentException("New password and confirm password must not be null.");
+        }
+
         if (!newPassword.equals(confirmPassword)) {
             throw new IllegalArgumentException("New password and confirm password do not match.");
         }
@@ -45,6 +49,11 @@ public class UsersService {
     }
 
     public String updateUserEmail(String username, String newEmail) {
+        // Check if the new email already exists
+        if (userRepo.findByEmail(newEmail).isPresent()) {
+            return "Email already exists.";
+        }
+
         User user = userRepo.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
         user.setEmail(newEmail);
         userRepo.save(user);
