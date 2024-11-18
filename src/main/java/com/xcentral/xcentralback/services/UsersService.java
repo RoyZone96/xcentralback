@@ -11,9 +11,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @Service
 @Transactional
 public class UsersService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UsersService.class);
 
     @Autowired
     UserRepo userRepo;
@@ -22,13 +27,13 @@ public class UsersService {
      private PasswordEncoder passwordEncoder;
 
     public String addNewUser(User user) {
-        System.out.println("The method did get called, yo");
+        logger.info("Adding new user: {}", user.getUsername());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepo.save(user);
         return "New user added successfully!";
     }
-
     public String updateUserPassword(String username, String oldPassword, String newPassword, String confirmPassword) {
+        logger.info("Updating password for user: {}", username);
         if (newPassword == null || confirmPassword == null) {
             throw new IllegalArgumentException("New password and confirm password must not be null.");
         }
@@ -42,28 +47,35 @@ public class UsersService {
         if (passwordEncoder.matches(oldPassword, user.getPassword())) {
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepo.save(user);
+            logger.info("Password updated successfully for user: {}", username);
             return "Password updated successfully!";
         } else {
+            logger.warn("Old password is incorrect for user: {}", username);
             throw new IllegalArgumentException("Old password is incorrect.");
         }
     }
 
     public String updateUserEmail(String username, String newEmail) {
-        // Check if the new email already exists
+        logger.info("Updating email for user: {}", username);
         if (userRepo.findByEmail(newEmail).isPresent()) {
+            logger.warn("Email already exists: {}", newEmail);
             return "Email already exists.";
         }
 
         User user = userRepo.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
         user.setEmail(newEmail);
         userRepo.save(user);
+        logger.info("Email updated successfully for user: {}", username);
         return "Email updated successfully!";
     }
 
+  
     public String resetUserPassword(String username, String newPassword) {
+        logger.info("Resetting password for user: {}", username);
         User user = userRepo.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
+        logger.info("Password reset successfully for user: {}", username);
         return "Password reset successfully!";
     }
 

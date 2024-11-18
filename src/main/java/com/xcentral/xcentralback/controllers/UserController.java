@@ -16,9 +16,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RestController;
-//import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,9 +26,14 @@ import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     UserRepo userRepo;
@@ -48,32 +52,38 @@ public class UserController {
 
     @PostMapping("/users/newuser")
     public String addNewUSer(@RequestBody User user) {
+        logger.info("Adding new user: {}", user.getUsername());
         return usersService.addNewUser(user);
     }
-
-    @PostMapping("/users/authenticate")
+    @PostMapping("/authenticate")
     public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+        logger.info("Authenticating user: {}", authRequest.getUsername());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
+            logger.info("User authenticated: {}", authRequest.getUsername());
             return jwtServices.generateToken(authRequest.getUsername());
         } else {
+            logger.warn("User not found: {}", authRequest.getUsername());
             throw new UserNotFoundException("User not found");
         }
     }
-    @PutMapping("/users/{username}/update-password")
+    @PutMapping("/{username}/update-password")
     public String updatePassword(@PathVariable String username, @Valid @RequestBody PasswordRequest passwordRequest) {
+        logger.info("Updating password for user: {}", username);
         return usersService.updateUserPassword(username, passwordRequest.getOldPassword(), passwordRequest.getNewPassword(),
                 passwordRequest.getConfirmPassword());
     }
 
-    @PutMapping("/users/{username}/update-email")
-    public String updateEmail(@PathVariable String username, @RequestBody EmailRequest emailUpdateRequest) {
+    @PutMapping("/{username}/update-email")
+    public String updateEmail(@PathVariable String username, @Valid @RequestBody EmailRequest emailUpdateRequest) {
+        logger.info("Updating email for user: {}", username);
         return usersService.updateUserEmail(username, emailUpdateRequest.getNewEmail());
     }
 
     @PutMapping("/users/{username}/reset-password")
     public String resetPassword(@PathVariable String username, @RequestBody PasswordRequest passwordRequest) {
+        logger.info("Resetting password for user: {}", username);
         return usersService.resetUserPassword(username, passwordRequest.getNewPassword());
     }
 

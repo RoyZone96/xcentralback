@@ -11,24 +11,31 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.util.List;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class SubService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SubService.class);
 
     @Autowired
     SubRepo subRepo;
 
-     public String addNewSubmission(Submission submission) {
-        System.out.println("The method did get called, yo");
+    public String addNewSubmission(Submission submission) {
+        logger.info("Adding new submission: {}", submission);
         try {
             subRepo.save(submission);
+            logger.info("New submission added successfully!");
             return "New submission added successfully!";
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException) {
                 // Handle the duplicate entry case
-                System.out.println("Duplicate entry detected: " + e.getMessage());
+                logger.warn("Duplicate entry detected: {}", e.getMessage());
                 return "Duplicate entry detected. Submission not added.";
             } else {
                 // Re-throw the exception if it's not a duplicate entry issue
+                logger.error("Data integrity violation: {}", e.getMessage());
                 throw e;
             }
         }

@@ -15,10 +15,15 @@ import io.jsonwebtoken.io.Decoders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @Component
 public class JWTServices {
 
     private static final String SECRET = "yourNewLongerSecretKeyHereMakeSureItIsAtLeast32BytesLongAndSecure";
+    private static final Logger logger = LoggerFactory.getLogger(JWTServices.class);
 
    
     public String extractUsername(String token) {
@@ -58,6 +63,7 @@ public class JWTServices {
 
 
     private String createToken(Map<String, Object> claims, String username) {
+        logger.info("Creating token for user: {}", username);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
