@@ -3,13 +3,18 @@ package com.xcentral.xcentralback.controllers;
 import com.xcentral.xcentralback.models.PasswordRequest;
 import com.xcentral.xcentralback.models.EmailRequest;
 import com.xcentral.xcentralback.models.User;
+import com.xcentral.xcentralback.models.PasswordResetToken;
 import com.xcentral.xcentralback.services.UsersService;
 import com.xcentral.xcentralback.repos.UserRepo;
+import com.xcentral.xcentralback.repos.PasswordResetTokenRepo;
 import com.xcentral.xcentralback.services.AuthRequest;
 import com.xcentral.xcentralback.services.JWTServices;
+import com.xcentral.xcentralback.services.EmailService;
 import com.xcentral.xcentralback.exceptions.UserNotFoundException;
 
 import javax.validation.Valid;
+import java.util.UUID;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,6 +50,12 @@ public class UserController {
     JWTServices jwtServices;
 
     @Autowired
+    EmailService emailService;
+
+    @Autowired
+    PasswordResetTokenRepo passwordResetTokenRepo;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -55,7 +66,7 @@ public class UserController {
         logger.info("Adding new user: {}", user.getUsername());
         return usersService.addNewUser(user);
     }
-    @PostMapping("/authenticate")
+    @PostMapping("/users/authenticate")
     public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         logger.info("Authenticating user: {}", authRequest.getUsername());
         Authentication authentication = authenticationManager.authenticate(
@@ -68,23 +79,39 @@ public class UserController {
             throw new UserNotFoundException("User not found");
         }
     }
-    @PutMapping("/{username}/update-password")
+    @PutMapping("/users/{username}/update-password")
     public String updatePassword(@PathVariable String username, @Valid @RequestBody PasswordRequest passwordRequest) {
         logger.info("Updating password for user: {}", username);
         return usersService.updateUserPassword(username, passwordRequest.getOldPassword(), passwordRequest.getNewPassword(),
                 passwordRequest.getConfirmPassword());
     }
 
-    @PutMapping("/{username}/update-email")
+    @PutMapping("/users/{username}/update-email")
     public String updateEmail(@PathVariable String username, @Valid @RequestBody EmailRequest emailUpdateRequest) {
         logger.info("Updating email for user: {}", username);
         return usersService.updateUserEmail(username, emailUpdateRequest.getNewEmail());
     }
 
-    @PutMapping("/users/{username}/reset-password")
-    public String resetPassword(@PathVariable String username, @RequestBody PasswordRequest passwordRequest) {
-        logger.info("Resetting password for user: {}", username);
-        return usersService.resetUserPassword(username, passwordRequest.getNewPassword());
+@PostMapping("/users/request-password-reset")
+    public String requestPasswordReset(@RequestBody String email) {
+        User user = usersService.getUserByEmail(email);
+        if (user == null) {
+            logger.warn("User not found: {}", email);
+            throw new UserNotFoundException("User not found");
+        }
+
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setToken(token);
+        resetToken.setUser(user);
+        resetToken.setExpiryDate(new Date(System.currentTimeMillis() + 3600000));
+        passwordResetTokenRepo.save(resetToken);
+
+        String resetLink = "http://localhost:8080/users/reset-password?token=" + token;
+        emailService.sendPasswordResetEmail(email, "Password Reset", "Click the link to reset your password: " + resetLink);
+
+        return "Password reset link sent to email";
+
     }
 
     @GetMapping("/users/userlist")

@@ -21,7 +21,7 @@ public class EmailService {
     @Autowired
     private UserRepo userRepo;
 
-    public void sendPasswordResetEmail(String to, String token) {
+    public void sendPasswordResetEmail(String to, String subject, String token) {
         if (userRepo.findByEmail(to).isPresent()) {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
