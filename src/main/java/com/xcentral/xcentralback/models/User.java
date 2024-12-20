@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
@@ -22,6 +23,9 @@ public class User {
     private String password;
     private String email;
     private String role;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ForgotPassword forgotPassword;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference

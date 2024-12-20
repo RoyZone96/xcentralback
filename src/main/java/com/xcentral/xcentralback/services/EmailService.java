@@ -1,37 +1,37 @@
 package com.xcentral.xcentralback.services;
 
+import com.xcentral.xcentralback.models.MailBody;
 import com.xcentral.xcentralback.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-/**
- * This package contains the service classes for the XCentralBack application.
- * 
- * The EmailService class within this package is responsible for handling
- * email-related operations such as sending and receiving emails.
- */
 @Service
 public class EmailService {
 
     @Autowired
-    private JavaMailSender emailSender;
+    private final JavaMailSender javaMailSender;
+
+    public EmailService(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+    }
 
     @Autowired
     private UserRepo userRepo;
 
-    public void sendPasswordResetEmail(String to, String subject, String token) {
-        if (userRepo.findByEmail(to).isPresent()) {
+    public void sendPasswordResetEmail(MailBody mailBody) {
+        if (userRepo.findByEmail(mailBody.to()).isPresent()) {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setSubject("Password Reset Request");
-            message.setText("To reset your password, please click the link below:\n" +
-                    "http://localhost:8080/resetpassword?token=" + token);
-            emailSender.send(message);
+            message.setTo(mailBody.to());
+            message.setFrom("royzone555@gmail.com");
+            message.setSubject("Do Not Reply-Password Reset Request");
+            message.setText("To reset your password, please click the link below and enter the OTP:\n" +
+                    "http://localhost:3000/resetpassword?token=" + mailBody.token());
+            javaMailSender.send(message);
         } else {
-            throw new IllegalArgumentException("User with email " + to + " does not exist.");
+            throw new IllegalArgumentException("User with email " + mailBody.to() + " does not exist.");
         }
-
     }
+
 }

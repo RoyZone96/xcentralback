@@ -16,9 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 @Service
 @Transactional
-public class UsersService {
+public class UserService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UsersService.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     UserRepo userRepo;
@@ -83,21 +83,34 @@ public class UsersService {
         return userRepo.findAll();
     }
 
-    public User getCurrentUser() {
-        // Logic to get the current user, e.g., from security context
-        return new User(); // Replace with actual logic
-    }
 
     public User getUserById(Long id) throws UserNotFoundException {
-        return userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        return userRepo.findById(id).orElseThrow(() -> new UserNotFoundException("Could not find user with id: " + id));
     }
-
+    
     public User getUserByUsername(String username) throws UserNotFoundException {
         return userRepo.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(username));
+                .orElseThrow(() -> new UserNotFoundException("Could not find user with username: " + username));
+    }
+    
+    public User getUserByEmail(String email) {
+        return userRepo.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Could not find user with email: " + email));
     }
 
-    public User getUserByEmail(String email) throws UserNotFoundException {
-        return userRepo.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+    public User saveOrUpdate(User user) {
+        return userRepo.save(user);
     }
+    
+    public User getUserEmailAndUsernameByEmail(String email) {
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Could not find user with email: " + email));
+        User userEmailAndUsername = new User();
+        userEmailAndUsername.setEmail(user.getEmail());
+        userEmailAndUsername.setUsername(user.getUsername());
+        return userEmailAndUsername;
+    }
+
+
+
 }

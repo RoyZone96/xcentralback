@@ -64,7 +64,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .requestMatchers("/users/newuser", "/users/authenticate").permitAll()
+                .requestMatchers("/users/newuser", "/users/authenticate", "/forgotPassword/**").permitAll()
                 .and()
                 .authorizeRequests().requestMatchers("/users/**")
                 .authenticated().and()
