@@ -77,7 +77,7 @@ public class ForgotPasswordController {
 
         ForgotPassword fp = ForgotPassword.builder()
                 .otp(otp)
-                .expiryTime(new Date(System.currentTimeMillis() + 10 * 60 * 1000)) // Set expiry time to 10 minutes
+                .expiryTime(new Date(System.currentTimeMillis() + 60 * 60 * 1000)) // Set expiry time to 1 hour
                 .user(user)
                 .build();
 
@@ -97,13 +97,13 @@ public class ForgotPasswordController {
                 .orElseThrow(() -> new UsernameNotFoundException("Please provide a valid email " + email));
 
         if (fp.getExpiryTime().before(Date.from(Instant.now()))) {
-            forgotPasswordRepo.deleteById(fp.getFpId());
+            forgotPasswordRepo.deleteByFpId(fp.getFpId());
             entityManager.flush();
             entityManager.clear();
             return new ResponseEntity<>("OTP has expired", HttpStatus.EXPECTATION_FAILED);
         }
 
-        forgotPasswordRepo.deleteById(fp.getFpId());
+        forgotPasswordRepo.deleteByFpId(fp.getFpId());
         entityManager.flush();
         entityManager.clear();
         return ResponseEntity.ok("OTP verified successfully");
@@ -128,7 +128,7 @@ public class ForgotPasswordController {
 
         if (fp.getExpiryTime().before(now)) {
             System.out.println("OTP is expired. Deleting from database.");
-            forgotPasswordRepo.deleteById(fp.getFpId());
+            forgotPasswordRepo.deleteByFpId(fp.getFpId());
             entityManager.flush();
             entityManager.clear();
             System.out.println("OTP deleted from database.");
@@ -138,7 +138,7 @@ public class ForgotPasswordController {
         String encodedPassword = passwordEncoder.encode(changePassword.password());
         userRepo.updatePassword(email, encodedPassword);
 
-        forgotPasswordRepo.deleteById(fp.getFpId());
+        forgotPasswordRepo.deleteByFpId(fp.getFpId());
         entityManager.flush();
         entityManager.clear();
         System.out.println("OTP deleted from database after password reset.");
