@@ -1,9 +1,14 @@
 package com.xcentral.xcentralback.models;
 
 import lombok.Builder;
+import lombok.Data;
 
 @Builder
-public record MailBody(String to, String from, String subject, String text, String token) {
-
-    
+@Data
+public class MailBody {
+    private String to;
+    private String from;
+    private String subject;
+    private String text;
+    private String token;
 }

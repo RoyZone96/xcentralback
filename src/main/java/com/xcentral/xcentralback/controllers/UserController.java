@@ -61,7 +61,12 @@ public class UserController {
     @PostMapping("/newuser")
     public String addNewUSer(@RequestBody User user) {
         logger.info("Adding new user: {}", user.getUsername());
-        return userService.addNewUser(user);
+        try {
+            return userService.addNewUser(user);
+        } catch (Exception e) {
+            logger.error("Error adding user", e);
+            throw e;
+        }
     }
 
     @PostMapping("/authenticate")
@@ -92,22 +97,22 @@ public class UserController {
         return userService.updateUserEmail(username, emailUpdateRequest.getNewEmail());
     }
 
-    @GetMapping("/users/userlist")
+    @GetMapping("/userlist")
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    @GetMapping("/users/id/{id}")
+    @GetMapping("/id/{id}")
     public User getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
-    @GetMapping("/users/username/{username}")
+    @GetMapping("/username/{username}")
     public User getUserByUsername(@PathVariable String username) {
         return userService.getUserByUsername(username);
     }
 
-    @GetMapping("/users/email/{email}")
+    @GetMapping("/email/{email}")
     public User getUserByEmail(@PathVariable String email) {
         return userService.getUserByEmail(email);
     }

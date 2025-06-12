@@ -1,6 +1,7 @@
 package com.xcentral.xcentralback.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.xcentral.xcentralback.models.ForgotPassword;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,38 +84,40 @@ public class ForgotPasswordController {
                 .build();
 
         forgotPasswordRepo.save(fp);
-        emailService.sendPasswordResetEmail(mailBody);
+        emailService.sendPasswordResetEmail(mailBody, otp);
 
         return ResponseEntity.ok("OTP sent to email: " + email);
     }
 
-    @PostMapping("/verifyOTP/{otp}/{email}")
+    @PostMapping("/verifyOTP")
     @Transactional
-    public ResponseEntity<String> verifyOTP(@PathVariable int otp, @PathVariable String email) {
-        User user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User with email " + email + " does not exist."));
-
-        ForgotPassword fp = forgotPasswordRepo.findByOtpAndUser(otp, user)
-                .orElseThrow(() -> new UsernameNotFoundException("Please provide a valid email " + email));
-
+    public ResponseEntity<String> verifyOTP(@RequestBody Map<String, Integer> requestBody) {
+        int otp = requestBody.get("otp");
+        ForgotPassword fp = forgotPasswordRepo.findByOtp(otp)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid OTP"));
+    
+        User user = fp.getUser();
+    
         if (fp.getExpiryTime().before(Date.from(Instant.now()))) {
             forgotPasswordRepo.deleteByFpId(fp.getFpId());
             entityManager.flush();
             entityManager.clear();
             return new ResponseEntity<>("OTP has expired", HttpStatus.EXPECTATION_FAILED);
         }
-
+    
         forgotPasswordRepo.deleteByFpId(fp.getFpId());
         entityManager.flush();
         entityManager.clear();
         return ResponseEntity.ok("OTP verified successfully");
     }
-
-    @PostMapping("/resetPassword/{otp}/{email}")
+    
+    @PostMapping("/resetPassword")
     @Transactional
-    public ResponseEntity<String> resetPasswordHandler(@RequestBody ChangePassword changePassword, @PathVariable String email) {
+    public ResponseEntity<String> resetPasswordHandler(@RequestBody ChangePassword changePassword,
+            @PathVariable String email) {
         if (!Objects.equals(changePassword.password(), changePassword.confirmPassword())) {
-            return new ResponseEntity<>("Passwords do not match. Please enter them again", HttpStatus.EXPECTATION_FAILED);
+            return new ResponseEntity<>("Passwords do not match. Please enter them again",
+                    HttpStatus.EXPECTATION_FAILED);
         }
 
         User user = userRepo.findByEmail(email)

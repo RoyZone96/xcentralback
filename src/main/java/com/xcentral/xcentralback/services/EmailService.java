@@ -20,18 +20,18 @@ public class EmailService {
     @Autowired
     private UserRepo userRepo;
 
-    public void sendPasswordResetEmail(MailBody mailBody) {
-        if (userRepo.findByEmail(mailBody.to()).isPresent()) {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(mailBody.to());
-            message.setFrom("royzone555@gmail.com");
-            message.setSubject("Do Not Reply-Password Reset Request");
-            message.setText("To reset your password, please click the link below and enter the OTP:\n" +
-                    "http://localhost:3000/resetpassword?token=" + mailBody.token());
-            javaMailSender.send(message);
-        } else {
-            throw new IllegalArgumentException("User with email " + mailBody.to() + " does not exist.");
-        }
+public void sendPasswordResetEmail(MailBody mailBody, int otp) {
+    if (userRepo.findByEmail(mailBody.getTo()).isPresent()) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(mailBody.getTo());
+        message.setFrom("donotreplyxcentral@gmail.com");
+        message.setSubject("Do Not Reply-Password Reset Request");
+        message.setText("To reset your password, please click the link below and enter the OTP:" + otp + "\n" +
+        "http://localhost:3000/otpEntry");
+        javaMailSender.send(message);
+    } else {
+        throw new IllegalArgumentException("User with email " + mailBody.getTo() + " does not exist.");
     }
+}
 
 }

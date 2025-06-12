@@ -15,6 +15,9 @@ public interface ForgotPasswordRepo extends JpaRepository<ForgotPassword, Intege
     @Query("select fp from ForgotPassword fp where fp.otp = :otp and fp.user = :user")
     Optional<ForgotPassword> findByOtpAndUser(int otp, User user);
 
+    @Query("select fp from ForgotPassword fp where fp.otp = :otp")
+    Optional<ForgotPassword> findByOtp(int otp);
+
     @Modifying
     @Transactional
     @Query("delete from ForgotPassword fp where fp.expiryTime < :now")
