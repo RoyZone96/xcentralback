@@ -10,13 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.Optional;
 
-public interface ForgotPasswordRepo extends JpaRepository<ForgotPassword, Integer> {
+public interface ForgotPasswordRepo extends JpaRepository<ForgotPassword, Long> {
 
     @Query("select fp from ForgotPassword fp where fp.otp = :otp and fp.user = :user")
     Optional<ForgotPassword> findByOtpAndUser(int otp, User user);
 
     @Query("select fp from ForgotPassword fp where fp.otp = :otp")
-    Optional<ForgotPassword> findByOtp(int otp);
+    Optional<ForgotPassword> findByOtp(long otp);
 
     @Modifying
     @Transactional
@@ -26,5 +26,10 @@ public interface ForgotPasswordRepo extends JpaRepository<ForgotPassword, Intege
     @Modifying
     @Transactional
     @Query("delete from ForgotPassword fp where fp.fpId = :fpId")
-    void deleteByFpId(int fpId);
+    void deleteByFpId(Long fpId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM ForgotPassword fp WHERE fp.otp = :otp")
+    void deleteByOtp(long otp);
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.Column;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,14 +20,15 @@ import java.util.Date;
 @AllArgsConstructor
 @Getter
 @Builder
+@Data
 public class ForgotPassword {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int fpId;
+    private Long fpId;
 
     @Column(nullable = false, unique = true)
-    private int otp;
+    private long otp;
 
     @Column(nullable = false)
     private Date expiryTime;
