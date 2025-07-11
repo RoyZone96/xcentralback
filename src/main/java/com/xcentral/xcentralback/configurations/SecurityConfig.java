@@ -61,20 +61,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable()
-                .authorizeRequests()
-                .requestMatchers("/users/newuser", "/users/authenticate", "/forgotPassword/**").permitAll()
-                .and()
-                .authorizeRequests().requestMatchers("/users/**")
-                .authenticated().and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
-                return http.build();
-    }
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.cors().and().csrf().disable()
+            .authorizeHttpRequests()
+            .requestMatchers("/users/newuser", "/users/authenticate", "/forgotPassword/**").permitAll()
+            .requestMatchers("/users/{id}/makeAdmin").hasRole("ADMIN") // Restrict makeAdmin to ADMIN role
+            .requestMatchers("/users/**").authenticated()
+            .anyRequest().authenticated()
+            .and()
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+}
 
     @Bean
     public PasswordEncoder passwordEncoder() {

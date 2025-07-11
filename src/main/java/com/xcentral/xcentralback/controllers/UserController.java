@@ -3,20 +3,20 @@ package com.xcentral.xcentralback.controllers;
 import com.xcentral.xcentralback.models.PasswordRequest;
 import com.xcentral.xcentralback.models.EmailRequest;
 import com.xcentral.xcentralback.models.User;
-import com.xcentral.xcentralback.models.RequestViaEmail;
+import com.xcentral.xcentralback.models.Verification;
 import com.xcentral.xcentralback.services.UserService;
+import com.xcentral.xcentralback.services.FileUploadService;
 import com.xcentral.xcentralback.repos.UserRepo;
-import com.xcentral.xcentralback.repos.ForgotPasswordRepo;
+import com.xcentral.xcentralback.repos.VerificationRepo;
 import com.xcentral.xcentralback.services.AuthRequest;
 import com.xcentral.xcentralback.services.JWTServices;
-import com.xcentral.xcentralback.services.EmailService;
 import com.xcentral.xcentralback.exceptions.UserNotFoundException;
 
+import org.springframework.http.ResponseEntity;
 import javax.validation.Valid;
-import java.util.UUID;
-import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,12 +29,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.Optional;
 import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -47,7 +50,13 @@ public class UserController {
     UserRepo userRepo;
 
     @Autowired
+    VerificationRepo verificationRepo;
+
+    @Autowired
     UserService userService;
+
+    @Autowired
+    FileUploadService fileUploadService;
 
     @Autowired
     JWTServices jwtServices;
@@ -69,9 +78,37 @@ public class UserController {
         }
     }
 
+    @GetMapping("/confirm")
+    public ResponseEntity<String> confirmEmail(@RequestParam("token") String token) {
+        Verification verification = verificationRepo.findByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token"));
+
+        if (verification.getExpiryDate().before(new java.util.Date())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expired");
+        }
+
+        User user = verification.getUser();
+        user.setEnabled(true);
+        userRepo.save(user);
+        verificationRepo.delete(verification);
+
+        return ResponseEntity.ok("Email confirmed successfully!");
+    }
+
     @PostMapping("/authenticate")
     public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         logger.info("Authenticating user: {}", authRequest.getUsername());
+        Optional<User> userOptional = userRepo.findByUsername(authRequest.getUsername());
+        if (userOptional.isEmpty()) {
+            logger.warn("User not found: {}", authRequest.getUsername());
+            throw new UserNotFoundException("User not found");
+        }
+        User user = userOptional.get();
+        if (!user.isEnabled()) {
+            logger.warn("Account disabled for user: {}", authRequest.getUsername());
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Account is not enabled. Please verify your email.");
+        }
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
@@ -83,6 +120,22 @@ public class UserController {
         }
     }
 
+    @PutMapping("/{id}/makeAdmin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> makeAdmin(@PathVariable Long id) {
+        logger.info("Making user with ID {} an admin", id);
+        Optional<User> userOptional = userRepo.findById(id);
+        if (userOptional.isEmpty()) {
+            logger.error("User with ID {} not found", id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        User user = userOptional.get();
+        user.setRole("ADMIN");
+        userRepo.save(user);
+
+        return ResponseEntity.ok("User with ID " + id + " is now an admin");
+    }
+
     @PutMapping("/{username}/update-password")
     public String updatePassword(@PathVariable String username, @Valid @RequestBody PasswordRequest passwordRequest) {
         logger.info("Updating password for user: {}", username);
@@ -91,7 +144,7 @@ public class UserController {
                 passwordRequest.getConfirmPassword());
     }
 
-    @PutMapping("/users/{username}/update-email")
+    @PutMapping("/{username}/update-email")
     public String updateEmail(@PathVariable String username, @Valid @RequestBody EmailRequest emailUpdateRequest) {
         logger.info("Updating email for user: {}", username);
         return userService.updateUserEmail(username, emailUpdateRequest.getNewEmail());
@@ -115,5 +168,57 @@ public class UserController {
     @GetMapping("/email/{email}")
     public User getUserByEmail(@PathVariable String email) {
         return userService.getUserByEmail(email);
+    }
+
+    @PostMapping("/{username}/profile-image")
+    public ResponseEntity<String> uploadProfileImage(
+            @PathVariable String username,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            logger.info("Uploading profile image for user: {}", username);
+
+            // Validate user exists
+            userService.getUserByUsername(username);
+
+            // Upload file and get the path
+            String imagePath = fileUploadService.uploadProfileImage(file, username);
+
+            // Update user's image URL in database
+            userService.updateUserProfileImage(username, imagePath);
+
+            return ResponseEntity.ok("Profile image uploaded successfully. Path: " + imagePath);
+        } catch (UserNotFoundException e) {
+            logger.error("User not found: {}", username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception e) {
+            logger.error("Error uploading profile image: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error uploading file: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/profile-picture/{username}")
+    public ResponseEntity<String> getProfilePictureUrl(@PathVariable String username) {
+        try {
+            logger.info("Getting profile picture URL for user: {}", username);
+
+            User user = userService.getUserByUsername(username);
+            String imageUrl = user.getImageUrl();
+
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                // Return the full URL for the frontend
+                String fullUrl = "http://localhost:8080" + imageUrl;
+                return ResponseEntity.ok(fullUrl);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (UserNotFoundException e) {
+            logger.error("User not found: {}", username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception e) {
+            logger.error("Error getting profile picture URL: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error getting profile picture URL");
+        }
     }
 }

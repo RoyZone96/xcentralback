@@ -20,6 +20,20 @@ public class EmailService {
     @Autowired
     private UserRepo userRepo;
 
+
+public void sendConfirmationEmail(MailBody mailBody, String token) {
+    if (userRepo.findByEmail(mailBody.getTo()).isPresent()) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(mailBody.getTo());
+        message.setFrom("donotreplyxcentral@gmail.com");
+        message.setSubject(mailBody.getSubject());
+        message.setText(mailBody.getText());
+        javaMailSender.send(message);
+    } else {
+        throw new IllegalArgumentException("User with email " + mailBody.getTo() + " does not exist.");
+    }
+}
+
 public void sendPasswordResetEmail(MailBody mailBody, int otp) {
     if (userRepo.findByEmail(mailBody.getTo()).isPresent()) {
         SimpleMailMessage message = new SimpleMailMessage();
@@ -33,5 +47,6 @@ public void sendPasswordResetEmail(MailBody mailBody, int otp) {
         throw new IllegalArgumentException("User with email " + mailBody.getTo() + " does not exist.");
     }
 }
+
 
 }

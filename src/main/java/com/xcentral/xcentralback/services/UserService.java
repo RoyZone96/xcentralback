@@ -1,8 +1,11 @@
 package com.xcentral.xcentralback.services;
 
 import com.xcentral.xcentralback.exceptions.UserNotFoundException;
+import com.xcentral.xcentralback.models.MailBody;
 import com.xcentral.xcentralback.models.User;
+import com.xcentral.xcentralback.models.Verification;
 import com.xcentral.xcentralback.repos.UserRepo;
+import com.xcentral.xcentralback.repos.VerificationRepo;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 @Service
 @Transactional
 public class UserService {
@@ -23,15 +26,40 @@ public class UserService {
     @Autowired
     UserRepo userRepo;
 
-     @Autowired
-     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private VerificationRepo verificationRepo;
+
+    @Autowired
+    private EmailService emailService;
 
     public String addNewUser(User user) {
         logger.info("Adding new user: {}", user.getUsername());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEnabled(false);
         userRepo.save(user);
-        return "New user added successfully!";
+
+        String token = java.util.UUID.randomUUID().toString();
+        java.util.Date expiryDate = new java.util.Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 1 day from
+                                                                                                          // now
+        Verification verification = new Verification(
+                token,
+                expiryDate,
+                user);
+        verificationRepo.save(verification);
+        MailBody mailBody = MailBody.builder()
+                .to(user.getEmail())
+                .subject("Do Not Reply-Email Verification")
+                .text("To verify your email, please click the link below:\n" +
+                        "http://localhost:3000/verify?token=" + token)
+                .build();
+
+        emailService.sendConfirmationEmail(mailBody, token);
+        return "New user added successfully! Please check your email for verification.";
     }
+
     public String updateUserPassword(String username, String oldPassword, String newPassword, String confirmPassword) {
         logger.info("Updating password for user: {}", username);
         if (newPassword == null || confirmPassword == null) {
@@ -69,7 +97,6 @@ public class UserService {
         return "Email updated successfully!";
     }
 
-  
     public String resetUserPassword(String username, String newPassword) {
         logger.info("Resetting password for user: {}", username);
         User user = userRepo.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
@@ -83,16 +110,15 @@ public class UserService {
         return userRepo.findAll();
     }
 
-
     public User getUserById(Long id) throws UserNotFoundException {
         return userRepo.findById(id).orElseThrow(() -> new UserNotFoundException("Could not find user with id: " + id));
     }
-    
+
     public User getUserByUsername(String username) throws UserNotFoundException {
         return userRepo.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Could not find user with username: " + username));
     }
-    
+
     public User getUserByEmail(String email) {
         return userRepo.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Could not find user with email: " + email));
@@ -101,7 +127,7 @@ public class UserService {
     public User saveOrUpdate(User user) {
         return userRepo.save(user);
     }
-    
+
     public User getUserEmailAndUsernameByEmail(String email) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Could not find user with email: " + email));
@@ -111,6 +137,15 @@ public class UserService {
         return userEmailAndUsername;
     }
 
+    public String updateUserProfileImage(String username, String imageUrl) {
+        logger.info("Updating profile image for user: {}", username);
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Could not find user with username: " + username));
 
+        user.setImageUrl(imageUrl);
+        userRepo.save(user);
+        logger.info("Profile image updated successfully for user: {}", username);
+        return "Profile image updated successfully!";
+    }
 
 }

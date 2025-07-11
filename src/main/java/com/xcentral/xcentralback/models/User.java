@@ -23,6 +23,8 @@ public class User {
     private String password;
     private String email;
     private String role;
+    private boolean enabled = false; // Will be stored as TINYINT(1) in MySQL
+    private String image_url; // Optional field for user profile image URL
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ForgotPassword forgotPassword;
@@ -72,11 +74,27 @@ public class User {
         this.role = role;
     }
 
+    public String getImageUrl() {
+        return image_url;
+    }
+
+    public void setImageUrl(String image_url) {
+        this.image_url = image_url;
+    }
+
     public List<Submission> getSubmissions() {
         return submissions;
     }
 
     public void setSubmissions(List<Submission> submissions) {
         this.submissions = submissions;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
