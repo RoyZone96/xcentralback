@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.xcentral.xcentralback.models.User;
 
 @Component
 public class JWTServices {
@@ -25,20 +26,19 @@ public class JWTServices {
     private static final String SECRET = "yourNewLongerSecretKeyHereMakeSureItIsAtLeast32BytesLongAndSecure";
     private static final Logger logger = LoggerFactory.getLogger(JWTServices.class);
 
-   
     public String extractUsername(String token) {
         return Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody().getSubject();
     }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-            .setSigningKey(getSignKey())
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-    } 
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
 
-      public Boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
@@ -55,12 +55,12 @@ public class JWTServices {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-    
-    public String generateToken(String username) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username);
-    }
 
+    public String generateToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole());
+        return createToken(claims, user.getUsername());
+    }
 
     private String createToken(Map<String, Object> claims, String username) {
         logger.info("Creating token for user: {}", username);
@@ -78,4 +78,3 @@ public class JWTServices {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
-

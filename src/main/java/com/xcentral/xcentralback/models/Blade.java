@@ -1,5 +1,6 @@
 package com.xcentral.xcentralback.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,7 +16,8 @@ public class Blade {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "bladeName")
+    @Column(name = "blade_name")
+    @JsonProperty("name")
     private String bladeName;
 
     // Getters and setters
@@ -23,9 +25,12 @@ public class Blade {
         return id;
     }
 
-    public String getName() {
+    public String getBladeName() {
         return bladeName;
     }
 
-  
+    public void setBladeName(String bladeName) {
+        this.bladeName = bladeName;
+    }
+
 }

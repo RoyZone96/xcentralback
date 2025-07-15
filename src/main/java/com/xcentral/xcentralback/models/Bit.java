@@ -27,5 +27,8 @@ public class Bit {
         return bit;
     }
 
-  
+    // Setter for bitName
+    public void setBit(String bit) {
+        this.bit = bit;
+    }
 }

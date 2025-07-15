@@ -113,27 +113,36 @@ public class UserController {
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
             logger.info("User authenticated: {}", authRequest.getUsername());
-            return jwtServices.generateToken(authRequest.getUsername());
+            return jwtServices.generateToken(user);
         } else {
             logger.warn("User not found: {}", authRequest.getUsername());
             throw new UserNotFoundException("User not found");
         }
     }
 
-    @PutMapping("/{id}/makeAdmin")
+    @PutMapping("/{id}/toggleAdmin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> makeAdmin(@PathVariable Long id) {
-        logger.info("Making user with ID {} an admin", id);
+    public ResponseEntity<?> toggleAdmin(@PathVariable Long id) {
+        logger.info("Toggling admin status for user with ID {}", id);
         Optional<User> userOptional = userRepo.findById(id);
         if (userOptional.isEmpty()) {
             logger.error("User with ID {} not found", id);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
         User user = userOptional.get();
-        user.setRole("ADMIN");
-        userRepo.save(user);
 
-        return ResponseEntity.ok("User with ID " + id + " is now an admin");
+        // Toggle between ADMIN and USER roles
+        if ("ADMIN".equals(user.getRole())) {
+            user.setRole("USER");
+            userRepo.save(user);
+            logger.info("User with ID {} demoted to USER", id);
+            return ResponseEntity.ok("User with ID " + id + " has been demoted to USER");
+        } else {
+            user.setRole("ADMIN");
+            userRepo.save(user);
+            logger.info("User with ID {} promoted to ADMIN", id);
+            return ResponseEntity.ok("User with ID " + id + " has been promoted to ADMIN");
+        }
     }
 
     @PutMapping("/{username}/update-password")
