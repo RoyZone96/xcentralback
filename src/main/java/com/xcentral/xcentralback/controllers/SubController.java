@@ -13,7 +13,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/submissions")
@@ -24,7 +23,6 @@ public class SubController {
     @Autowired
     private SubService subService;
 
-    
     @GetMapping("/sublist")
     public List<Submission> getAllSubmissions() {
         logger.info("Fetching all submissions");
@@ -85,7 +83,7 @@ public class SubController {
         return subService.getSubmissionByDateUpdated(dateUpdated);
     }
 
-    @GetMapping("sublist/username/{username}")
+    @GetMapping("/sublist/username/{username}")
     public List<Submission> getSubmissionsByUsername(@PathVariable String username) {
         logger.info("Fetching submissions by username: {}", username);
         return subService.getSubmissionsByUsername(username);
@@ -104,7 +102,8 @@ public class SubController {
     }
 
     @PutMapping("/id/{id}")
-    public void updateSubmission(@PathVariable Long id, @RequestBody Submission updatedSubmission) throws SubmissionNotFoundException {
+    public void updateSubmission(@PathVariable Long id, @RequestBody Submission updatedSubmission)
+            throws SubmissionNotFoundException {
         logger.info("Updating submission with id: {}", id);
         subService.updateSubmission(id, updatedSubmission);
     }

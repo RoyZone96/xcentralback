@@ -29,9 +29,9 @@ public class Submission {
     private String bit;
     private int wins;
     private int losses;
-    private double winRateAvg;
+    private Double winRateAvg;
     private int points;
-    private double pointsAvg;
+    private Double pointsAvg;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateCreated;
@@ -42,7 +42,6 @@ public class Submission {
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     private User user;
-
 
     @Column(name = "username")
     private String username;
@@ -106,11 +105,11 @@ public class Submission {
         this.losses = losses;
     }
 
-    public double getWinRateAvg() {
+    public Double getWinRateAvg() {
         return winRateAvg;
     }
 
-    public void setWinRateAvg(double winRateAvg) {
+    public void setWinRateAvg(Double winRateAvg) {
         this.winRateAvg = winRateAvg;
     }
 
@@ -138,7 +137,7 @@ public class Submission {
         this.user = user;
     }
 
-   public int getPoints() {
+    public int getPoints() {
         return points;
     }
 
@@ -146,11 +145,11 @@ public class Submission {
         this.points = points;
     }
 
-    public double getPointsAvg() {
+    public Double getPointsAvg() {
         return pointsAvg;
     }
 
-    public void setPointsAvg(double pointsAvg) {
+    public void setPointsAvg(Double pointsAvg) {
         this.pointsAvg = pointsAvg;
     }
 
