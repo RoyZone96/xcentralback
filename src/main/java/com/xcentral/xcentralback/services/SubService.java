@@ -22,9 +22,15 @@ public class SubService {
     @Autowired
     SubRepo subRepo;
 
+    @Autowired
+    AntiCheatService antiCheatService;
+
     public String addNewSubmission(Submission submission) {
         logger.info("Adding new submission: {}", submission);
         try {
+            // Check for anti-cheat violations before saving
+            antiCheatService.checkAndFlagSubmission(submission);
+
             subRepo.save(submission);
             logger.info("New submission added successfully!");
             return "New submission added successfully!";
@@ -93,8 +99,27 @@ public class SubService {
     public void updateSubmission(Long id, Submission updatedSubmission) throws SubmissionNotFoundException {
         Submission existingSubmission = subRepo.findById(id)
                 .orElseThrow(() -> new SubmissionNotFoundException(id));
+
+        // Update the fields
         existingSubmission.setWins(updatedSubmission.getWins());
         existingSubmission.setLosses(updatedSubmission.getLosses());
+
+        // Check for anti-cheat violations before saving
+        antiCheatService.checkAndFlagSubmission(existingSubmission);
+
         subRepo.save(existingSubmission);
+        logger.info("Submission {} updated successfully. Flagged: {}", id, existingSubmission.isFlagged());
+    }
+
+    public List<Submission> getFlaggedSubmissions() {
+        return subRepo.findByIsFlagged(true);
+    }
+
+    public void flagSubmission(Long id, boolean flagged) throws SubmissionNotFoundException {
+        Submission submission = subRepo.findById(id)
+                .orElseThrow(() -> new SubmissionNotFoundException(id));
+        submission.setFlagged(flagged);
+        subRepo.save(submission);
+        logger.info("Submission {} {} manually", id, flagged ? "flagged" : "unflagged");
     }
 }

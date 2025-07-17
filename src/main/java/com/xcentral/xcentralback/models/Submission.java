@@ -32,6 +32,7 @@ public class Submission {
     private Double winRateAvg;
     private int points;
     private Double pointsAvg;
+    private boolean isFlagged;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateCreated;
@@ -159,5 +160,13 @@ public class Submission {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public boolean isFlagged() {
+        return isFlagged;
+    }
+
+    public void setFlagged(boolean isFlagged) {
+        this.isFlagged = isFlagged;
     }
 }

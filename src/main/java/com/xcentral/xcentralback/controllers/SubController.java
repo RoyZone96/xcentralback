@@ -5,6 +5,7 @@ import com.xcentral.xcentralback.models.Submission;
 import com.xcentral.xcentralback.services.SubService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
@@ -106,5 +107,33 @@ public class SubController {
             throws SubmissionNotFoundException {
         logger.info("Updating submission with id: {}", id);
         subService.updateSubmission(id, updatedSubmission);
+    }
+
+    @GetMapping("/flagged")
+    public List<Submission> getFlaggedSubmissions() {
+        logger.info("Fetching all flagged submissions");
+        return subService.getFlaggedSubmissions();
+    }
+
+    @PutMapping("/flag/{id}")
+    public ResponseEntity<String> flagSubmission(@PathVariable Long id) {
+        logger.info("Manually flagging submission with id: {}", id);
+        try {
+            subService.flagSubmission(id, true);
+            return ResponseEntity.ok("Submission flagged successfully");
+        } catch (SubmissionNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/unflag/{id}")
+    public ResponseEntity<String> unflagSubmission(@PathVariable Long id) {
+        logger.info("Manually unflagging submission with id: {}", id);
+        try {
+            subService.flagSubmission(id, false);
+            return ResponseEntity.ok("Submission unflagged successfully");
+        } catch (SubmissionNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
