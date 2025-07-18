@@ -40,6 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -47,6 +48,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     @Autowired
     UserRepo userRepo;
@@ -73,13 +77,27 @@ public class UserController {
     AuthenticationManager authenticationManager;
 
     @PostMapping("/newuser")
-    public String addNewUSer(@RequestBody User user) {
+    public ResponseEntity<?> addNewUser(@RequestBody User user) {
         logger.info("Adding new user: {}", user.getUsername());
         try {
-            return userService.addNewUser(user);
+            // Check if username already exists
+            if (userRepo.findByUsername(user.getUsername()).isPresent()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Username already exists. Please choose a different username.");
+            }
+            
+            // Check if email already exists
+            if (userRepo.findByEmail(user.getEmail()).isPresent()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Email already exists. Please use a different email.");
+            }
+            
+            String result = userService.addNewUser(user);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             logger.error("Error adding user", e);
-            throw e;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating user: " + e.getMessage());
         }
     }
 
@@ -229,7 +247,7 @@ public class UserController {
 
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 // Return the full URL for the frontend
-                String fullUrl = "http://localhost:8080" + imageUrl;
+                String fullUrl = baseUrl + imageUrl;
                 return ResponseEntity.ok(fullUrl);
             } else {
                 return ResponseEntity.notFound().build();

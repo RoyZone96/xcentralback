@@ -31,6 +31,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 
@@ -43,6 +45,9 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthFilter authFilter;
 
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
+
     @Bean
     // authentication for users amd admins
     public UserDetailsService UserDetailsService() {
@@ -52,8 +57,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource configurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        config.setAllowedOrigins(Arrays.asList(frontendUrl.split(",")));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Include OPTIONS
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowCredentials(true);
         config.setExposedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type")); // Example headers
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -62,19 +69,20 @@ public class SecurityConfig {
 
     @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.cors().and().csrf().disable()
-            .authorizeHttpRequests()
-            .requestMatchers("/users/newuser", "/users/authenticate", "/forgotPassword/**").permitAll()
-            .requestMatchers("/users/{id}/makeAdmin").hasRole("ADMIN") // Restrict makeAdmin to ADMIN role
-            .requestMatchers("/users/**").authenticated()
-            .anyRequest().authenticated()
-            .and()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
+    return http
+            .cors(cors -> cors.configurationSource(configurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/users/newuser", "/users/authenticate", "/users/confirm", "/users/resend-confirmation", "/forgotPassword/**").permitAll()
+                .requestMatchers("/users/{id}/makeAdmin").hasRole("ADMIN") // Restrict makeAdmin to ADMIN role
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/users/**").authenticated()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
-    return http.build();
+            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
 }
 
     @Bean

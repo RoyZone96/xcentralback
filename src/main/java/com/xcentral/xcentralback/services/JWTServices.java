@@ -14,6 +14,7 @@ import io.jsonwebtoken.io.Decoders;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,12 @@ import com.xcentral.xcentralback.models.User;
 @Component
 public class JWTServices {
 
-    private static final String SECRET = "yourNewLongerSecretKeyHereMakeSureItIsAtLeast32BytesLongAndSecure";
+    @Value("${jwt.secret:yourNewLongerSecretKeyHereMakeSureItIsAtLeast32BytesLongAndSecure}")
+    private String SECRET;
+    
+    @Value("${jwt.expiration:36000}")
+    private int jwtExpirationInSeconds;
+    
     private static final Logger logger = LoggerFactory.getLogger(JWTServices.class);
 
     public String extractUsername(String token) {
@@ -68,7 +74,7 @@ public class JWTServices {
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInSeconds * 1000L))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
