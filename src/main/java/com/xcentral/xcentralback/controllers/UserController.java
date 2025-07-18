@@ -6,6 +6,8 @@ import com.xcentral.xcentralback.models.User;
 import com.xcentral.xcentralback.models.Verification;
 import com.xcentral.xcentralback.services.UserService;
 import com.xcentral.xcentralback.services.FileUploadService;
+import com.xcentral.xcentralback.services.EmailService;
+import com.xcentral.xcentralback.models.MailBody;
 import com.xcentral.xcentralback.repos.UserRepo;
 import com.xcentral.xcentralback.repos.VerificationRepo;
 import com.xcentral.xcentralback.services.AuthRequest;
@@ -59,6 +61,9 @@ public class UserController {
     FileUploadService fileUploadService;
 
     @Autowired
+    EmailService emailService;
+
+    @Autowired
     JWTServices jwtServices;
 
     @Autowired
@@ -80,17 +85,25 @@ public class UserController {
 
     @GetMapping("/confirm")
     public ResponseEntity<String> confirmEmail(@RequestParam("token") String token) {
+        logger.info("Confirming email with token: {}", token);
+
         Verification verification = verificationRepo.findByToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token"));
 
         if (verification.getExpiryDate().before(new java.util.Date())) {
+            logger.warn("Token expired for token: {}", token);
+            // Delete expired verification
+            verificationRepo.delete(verification);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expired");
         }
 
         User user = verification.getUser();
         user.setEnabled(true);
         userRepo.save(user);
+
+        // Delete used verification token
         verificationRepo.delete(verification);
+        logger.info("Email confirmed successfully for user: {}", user.getUsername());
 
         return ResponseEntity.ok("Email confirmed successfully!");
     }
@@ -229,5 +242,29 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error getting profile picture URL");
         }
+    }
+
+    @PostMapping("/resend-confirmation")
+    public ResponseEntity<?> resendConfirmationEmail(@RequestParam String email) {
+        Optional<User> userOpt = userRepo.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        User user = userOpt.get();
+        if (user.isEnabled()) {
+            return ResponseEntity.badRequest().body("User is already confirmed.");
+        }
+        // Generate a new token and expiry (or reuse existing if you prefer)
+        String token = java.util.UUID.randomUUID().toString();
+        java.util.Date expiry = new java.util.Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 24h
+        Verification verification = new Verification(token, expiry, user);
+        verificationRepo.save(verification);
+        MailBody mailBody = MailBody.builder()
+                .to(email)
+                .subject("Email Confirmation")
+                .text("") // Not used, see EmailService
+                .build();
+        emailService.sendConfirmationEmail(mailBody, token);
+        return ResponseEntity.ok("Confirmation email resent.");
     }
 }
