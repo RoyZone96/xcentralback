@@ -85,13 +85,13 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("Username already exists. Please choose a different username.");
             }
-            
+
             // Check if email already exists
             if (userRepo.findByEmail(user.getEmail()).isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("Email already exists. Please use a different email.");
             }
-            
+
             String result = userService.addNewUser(user);
             return ResponseEntity.ok(result);
         } catch (Exception e) {

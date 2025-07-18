@@ -26,10 +26,10 @@ public class JWTServices {
 
     @Value("${jwt.secret:yourNewLongerSecretKeyHereMakeSureItIsAtLeast32BytesLongAndSecure}")
     private String SECRET;
-    
+
     @Value("${jwt.expiration:36000}")
     private int jwtExpirationInSeconds;
-    
+
     private static final Logger logger = LoggerFactory.getLogger(JWTServices.class);
 
     public String extractUsername(String token) {

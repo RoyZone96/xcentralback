@@ -2,7 +2,6 @@ package com.xcentral.xcentralback.configurations;
 
 import java.security.Security;
 
-
 import com.xcentral.xcentralback.filters.JwtAuthFilter;
 
 import java.util.Arrays;
@@ -11,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy; 
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,7 +34,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -53,7 +51,7 @@ public class SecurityConfig {
     public UserDetailsService UserDetailsService() {
         return new UserInfoUserDetailsService();
     }
-    
+
     @Bean
     public CorsConfigurationSource configurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -68,22 +66,23 @@ public class SecurityConfig {
     }
 
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    return http
-            .cors(cors -> cors.configurationSource(configurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/users/newuser", "/users/authenticate", "/users/confirm", "/users/resend-confirmation", "/forgotPassword/**").permitAll()
-                .requestMatchers("/users/{id}/makeAdmin").hasRole("ADMIN") // Restrict makeAdmin to ADMIN role
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/users/**").authenticated()
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
-}
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .cors(cors -> cors.configurationSource(configurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/users/newuser", "/users/authenticate", "/users/confirm",
+                                "/users/resend-confirmation", "/forgotPassword/**")
+                        .permitAll()
+                        .requestMatchers("/users/{id}/makeAdmin").hasRole("ADMIN") // Restrict makeAdmin to ADMIN role
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/users/**").authenticated()
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -99,7 +98,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
