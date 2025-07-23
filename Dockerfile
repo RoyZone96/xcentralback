@@ -1,14 +1,12 @@
-# Use an official OpenJDK runtime as a parent image
-FROM eclipse-temurin:17-jre
-
-# Set the working directory
+# Build stage
+FROM eclipse-temurin:17-jdk as builder
 WORKDIR /app
+COPY . .
+RUN ./mvnw clean package -DskipTests
 
-# Copy the built jar file from target folder
-COPY target/xcentralback-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose the port (Render will set $PORT)
+# Run stage
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=builder /app/target/xcentralback-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Run the jar file
 ENTRYPOINT ["java", "-jar", "app.jar"]
