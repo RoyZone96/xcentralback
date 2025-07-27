@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/submissions")
 public class SubController {
 

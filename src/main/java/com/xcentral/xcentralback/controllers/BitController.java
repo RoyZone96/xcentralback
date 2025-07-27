@@ -13,7 +13,6 @@ import com.xcentral.xcentralback.models.Bit;
 import com.xcentral.xcentralback.services.BitService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/bittype")
 public class BitController {
 

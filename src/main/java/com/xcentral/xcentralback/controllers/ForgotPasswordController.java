@@ -39,7 +39,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/forgotPassword")
 public class ForgotPasswordController {

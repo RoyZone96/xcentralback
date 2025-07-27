@@ -12,7 +12,6 @@ import com.xcentral.xcentralback.models.Ratchet;
 import com.xcentral.xcentralback.services.RatchetService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/ratchets")
 public class RatchetController {
     

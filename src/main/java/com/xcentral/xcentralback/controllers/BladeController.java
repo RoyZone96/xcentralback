@@ -11,7 +11,6 @@ import com.xcentral.xcentralback.models.Blade;
 import com.xcentral.xcentralback.services.BladeService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/blade_parts")
 public class BladeController {
 
