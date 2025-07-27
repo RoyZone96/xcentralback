@@ -16,12 +16,16 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @Transactional
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @Autowired
     UserRepo userRepo;
@@ -53,7 +57,7 @@ public class UserService {
                 .to(user.getEmail())
                 .subject("Do Not Reply-Email Verification")
                 .text("To verify your email, please click the link below:\n" +
-                        "http://localhost:3000/verify?token=" + token)
+                        frontendUrl + "/verify?token=" + token)
                 .build();
 
         emailService.sendConfirmationEmail(mailBody, token);

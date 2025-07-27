@@ -2,7 +2,6 @@ package com.xcentral.xcentralback.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.xcentral.xcentralback.models.ForgotPassword;
 import com.xcentral.xcentralback.models.ChangePassword;
@@ -13,7 +12,6 @@ import com.xcentral.xcentralback.repos.ForgotPasswordRepo;
 import com.xcentral.xcentralback.repos.UserRepo;
 
 import com.xcentral.xcentralback.services.EmailService;
-
 
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
@@ -37,7 +35,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 @RestController
 @RequestMapping("/forgotPassword")

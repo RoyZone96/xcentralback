@@ -14,10 +14,10 @@ public class EmailService {
     @Autowired
     private final JavaMailSender javaMailSender;
 
-    @Value("${app.base-url:http://localhost:8080}")
+    @Value("${app.base-url}")
     private String baseUrl;
 
-    @Value("${app.frontend-url:http://localhost:3000}")
+    @Value("${app.frontend-url}")
     private String frontendUrl;
 
     public EmailService(JavaMailSender javaMailSender) {
