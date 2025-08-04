@@ -5,33 +5,33 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class SimpleConnectionTest {
-    
+
     public static void main(String[] args) {
-        String url = "jdbc:postgresql://db.dzjxerwuoieoqxvpphky.supabase.co:5432/postgres?sslmode=require&connectTimeout=60&socketTimeout=60";
-        String username = "postgres";
+        String url = "jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require&connectTimeout=60&socketTimeout=60";
+        String username = "postgres.dzjxerwuoieoqxvpphky";
         String password = "RnHPJz2AJZFCnjc8";
-        
+
         System.out.println("=== Simple PostgreSQL Connection Test ===");
         System.out.println("Attempting to connect to: " + url);
-        
+
         try {
             // Load the PostgreSQL driver
             Class.forName("org.postgresql.Driver");
             System.out.println("✅ PostgreSQL driver loaded successfully");
-            
+
             // Attempt connection
             Connection connection = DriverManager.getConnection(url, username, password);
             System.out.println("✅ Database connection successful!");
-            
+
             // Get database info
             System.out.println("Database URL: " + connection.getMetaData().getURL());
             System.out.println("Database Product: " + connection.getMetaData().getDatabaseProductName());
             System.out.println("Database Version: " + connection.getMetaData().getDatabaseProductVersion());
-            
+
             // Close connection
             connection.close();
             System.out.println("✅ Connection closed successfully");
-            
+
         } catch (ClassNotFoundException e) {
             System.out.println("❌ PostgreSQL driver not found!");
             e.printStackTrace();
@@ -45,7 +45,7 @@ public class SimpleConnectionTest {
             System.out.println("❌ Unexpected error!");
             e.printStackTrace();
         }
-        
+
         System.out.println("=== End Connection Test ===");
     }
 }
