@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.multipart.MultipartFile;
@@ -272,7 +273,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/resend-confirmation")
+    @GetMapping("/resend-confirmation")
     public ResponseEntity<?> resendConfirmationEmail(@RequestParam String email) {
         Optional<User> userOpt = userRepo.findByEmail(email);
         if (userOpt.isEmpty()) {
@@ -294,5 +295,27 @@ public class UserController {
                 .build();
         emailService.sendConfirmationEmail(mailBody, token);
         return ResponseEntity.ok("Confirmation email resent.");
+    }
+
+    @GetMapping("/check-availability")
+    public ResponseEntity<?> checkAvailability(@RequestParam(required = false) String username, 
+                                               @RequestParam(required = false) String email) {
+        try {
+            if (username != null) {
+                boolean usernameExists = userRepo.findByUsername(username).isPresent();
+                return ResponseEntity.ok(Map.of("field", "username", "available", !usernameExists));
+            }
+            
+            if (email != null) {
+                boolean emailExists = userRepo.findByEmail(email).isPresent();
+                return ResponseEntity.ok(Map.of("field", "email", "available", !emailExists));
+            }
+            
+            return ResponseEntity.badRequest().body("Either username or email parameter is required");
+        } catch (Exception e) {
+            logger.error("Error checking availability", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error checking availability");
+        }
     }
 }

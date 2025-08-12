@@ -56,10 +56,11 @@ public class SecurityConfig {
     public CorsConfigurationSource configurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(frontendUrl.split(",")));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Include OPTIONS
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); // Include OPTIONS and PATCH
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
         config.setExposedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type")); // Example headers
+        config.setMaxAge(3600L); // Cache preflight response for 1 hour
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
@@ -72,7 +73,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/users/newuser", "/users/authenticate", "/users/confirm",
-                                "/users/resend-confirmation", "/forgotPassword/**")
+                                "/users/resend-confirmation", "/users/check-availability", "/forgotPassword/**", 
+                                "/users/username/**", "/users/email/**")
                         .permitAll()
                         .requestMatchers("/users/{id}/makeAdmin").hasRole("ADMIN") // Restrict makeAdmin to ADMIN role
                         .requestMatchers("/admin/**").hasRole("ADMIN")
