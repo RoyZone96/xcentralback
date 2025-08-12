@@ -74,7 +74,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/users/newuser", "/users/authenticate", "/users/confirm",
                                 "/users/resend-confirmation", "/users/check-availability", "/forgotPassword/**", 
-                                "/users/username/**", "/users/email/**")
+                                "/users/username/**", "/users/email/**",
+                                "/submissions/sublist", "/submissions/sublist/**",
+                                "/blade_parts/**", "/ratchets/**", "/bittype/**")
                         .permitAll()
                         .requestMatchers("/users/{id}/makeAdmin").hasRole("ADMIN") // Restrict makeAdmin to ADMIN role
                         .requestMatchers("/admin/**").hasRole("ADMIN")
