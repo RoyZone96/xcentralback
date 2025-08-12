@@ -13,6 +13,7 @@ import com.xcentral.xcentralback.repos.VerificationRepo;
 import com.xcentral.xcentralback.services.AuthRequest;
 import com.xcentral.xcentralback.services.JWTServices;
 import com.xcentral.xcentralback.exceptions.UserNotFoundException;
+import com.xcentral.xcentralback.services.PasswordService;
 
 import org.springframework.http.ResponseEntity;
 import javax.validation.Valid;
@@ -74,10 +75,16 @@ public class UserController {
     @Autowired
     AuthenticationManager authenticationManager;
 
+    @Autowired
+    PasswordService passwordService;
+
     @PostMapping("/newuser")
     public ResponseEntity<?> addNewUser(@RequestBody User user) {
         logger.info("Adding new user: {}", user.getUsername());
         try {
+            if (user.getUsername() == null || user.getEmail() == null || user.getPassword() == null) {
+                return ResponseEntity.badRequest().body("Username, email, and password are required.");
+            }
             // Check if username already exists
             if (userRepo.findByUsername(user.getUsername()).isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -92,11 +99,16 @@ public class UserController {
 
             String result = userService.addNewUser(user);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            logger.error("Error adding user", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error creating user: " + e.getMessage());
-        }
+        } catch (IllegalArgumentException e) {
+        // Password validation errors from PasswordService
+        logger.warn("Password validation failed for user {}: {}", user.getUsername(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Password validation failed: " + e.getMessage());
+    } catch (Exception e) {
+        logger.error("Error adding user", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error creating user: " + e.getMessage());
+    }
     }
 
     @GetMapping("/confirm")

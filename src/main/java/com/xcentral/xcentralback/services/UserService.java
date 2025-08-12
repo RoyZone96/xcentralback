@@ -6,6 +6,7 @@ import com.xcentral.xcentralback.models.User;
 import com.xcentral.xcentralback.models.Verification;
 import com.xcentral.xcentralback.repos.UserRepo;
 import com.xcentral.xcentralback.repos.VerificationRepo;
+import com.xcentral.xcentralback.services.PasswordService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,26 @@ public class UserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private PasswordService passwordService;
+
     public String addNewUser(User user) {
         logger.info("Adding new user: {}", user.getUsername());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        try {
+            if (userRepo.findByUsername(user.getUsername()).isPresent()) {
+                logger.warn("Username already exists: {}", user.getUsername());
+                return "Username already exists.";
+            }
+
+            if (userRepo.findByEmail(user.getEmail()).isPresent()) {
+                logger.warn("Email already exists: {}", user.getEmail());
+                return "Email already exists.";
+            }
+        
+
+        String hashedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(hashedPassword);
         user.setEnabled(false);
         userRepo.save(user);
 
@@ -62,6 +80,13 @@ public class UserService {
 
         emailService.sendConfirmationEmail(mailBody, token);
         return "New user added successfully! Please check your email for verification.";
+    } catch(IllegalArgumentException e ){
+            logger.error("Error adding new user: {}", e.getMessage());
+            return "Error adding new user: " + e.getMessage();
+        } catch (Exception e) {
+            logger.error("Unexpected error while adding new user: {}", e.getMessage());
+            return "Unexpected error while adding new user.";
+        }
     }
 
     public String updateUserPassword(String username, String oldPassword, String newPassword, String confirmPassword) {
