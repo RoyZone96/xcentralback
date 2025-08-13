@@ -23,6 +23,12 @@ public class DebugController {
     @Value("${CORS_ORIGINS:not-set}")
     private String corsOrigins;
 
+    // Add a root-level endpoint that bypasses all security
+    @GetMapping("/public-health")
+    public String publicHealth() {
+        return "Public health check OK - " + System.currentTimeMillis();
+    }
+
     @GetMapping("/cors-info")
     public Map<String, String> getCorsInfo() {
         Map<String, String> info = new HashMap<>();
@@ -38,6 +44,12 @@ public class DebugController {
         Map<String, String> health = new HashMap<>();
         health.put("status", "UP");
         health.put("timestamp", String.valueOf(System.currentTimeMillis()));
+        health.put("message", "Server is running");
         return health;
+    }
+
+    @GetMapping("/simple")
+    public String simple() {
+        return "Hello from xcentralback! Server is working.";
     }
 }

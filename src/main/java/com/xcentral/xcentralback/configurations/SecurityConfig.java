@@ -73,7 +73,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/newuser", "/users/authenticate", "/users/confirm",
+                        .requestMatchers("/", "/health", "/ping", "/users/newuser", "/users/authenticate", "/users/confirm",
                                 "/users/resend-confirmation", "/users/check-availability", "/forgotPassword/**",
                                 "/users/username/**", "/users/email/**",
                                 "/submissions/sublist", "/submissions/sublist/**",
