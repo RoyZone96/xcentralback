@@ -18,10 +18,20 @@ public class SecurityConfigDev {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable()
-                .authorizeRequests()
-                .anyRequest().permitAll(); // Permit all requests in development
-        return http.build();
+        return http
+                .cors(cors -> cors.configurationSource(request -> {
+                    var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                    corsConfig.setAllowedOriginPatterns(java.util.Arrays.asList("*"));
+                    corsConfig.setAllowedMethods(java.util.Arrays.asList("*"));
+                    corsConfig.setAllowedHeaders(java.util.Arrays.asList("*"));
+                    corsConfig.setAllowCredentials(true);
+                    return corsConfig;
+                }))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/debug/**").permitAll() // Explicitly allow debug endpoints
+                        .anyRequest().permitAll()) // Permit all requests in development
+                .build();
     }
 
     @Bean
