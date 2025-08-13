@@ -55,7 +55,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource configurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(frontendUrl.split(",")));
+        // Temporary: Allow all origins for debugging
+        config.setAllowedOriginPatterns(Arrays.asList("*"));
+        // Also keep the configured origins
+        try {
+            config.setAllowedOrigins(Arrays.asList(frontendUrl.split(",")));
+        } catch (Exception e) {
+            // Fallback if frontendUrl is not set
+            config.setAllowedOrigins(Arrays.asList("https://xcentralfront-66xkgz8dx-royzone96s-projects.vercel.app",
+                    "https://xcentralfront.vercel.app"));
+        }
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); // Include OPTIONS
                                                                                                      // and PATCH
         config.setAllowedHeaders(Arrays.asList("*"));
@@ -73,7 +82,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/health", "/ping", "/users/newuser", "/users/authenticate", "/users/confirm",
+                        .requestMatchers("/", "/health", "/ping", "/users/newuser", "/users/authenticate",
+                                "/users/confirm",
                                 "/users/resend-confirmation", "/users/check-availability", "/forgotPassword/**",
                                 "/users/username/**", "/users/email/**",
                                 "/submissions/sublist", "/submissions/sublist/**",
