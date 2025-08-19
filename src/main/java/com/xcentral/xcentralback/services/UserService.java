@@ -78,14 +78,23 @@ public class UserService {
                         frontendUrl + "/verify?token=" + token)
                 .build();
 
-        emailService.sendConfirmationEmail(mailBody, token);
+        try {
+            logger.info("Attempting to send confirmation email to: {}", user.getEmail());
+            emailService.sendConfirmationEmail(mailBody, token);
+            logger.info("Confirmation email sent successfully to: {}", user.getEmail());
+        } catch (Exception emailException) {
+            logger.error("Failed to send confirmation email to {}: {}", user.getEmail(), emailException.getMessage(), emailException);
+            // Don't fail the entire registration if email fails
+            return "User registered successfully, but email confirmation failed. Please contact support.";
+        }
+        
         return "New user added successfully! Please check your email for verification.";
     } catch(IllegalArgumentException e ){
             logger.error("Error adding new user: {}", e.getMessage());
             return "Error adding new user: " + e.getMessage();
         } catch (Exception e) {
-            logger.error("Unexpected error while adding new user: {}", e.getMessage());
-            return "Unexpected error while adding new user.";
+            logger.error("Unexpected error while adding new user: {}", e.getMessage(), e);
+            return "Unexpected error while adding new user: " + e.getMessage();
         }
     }
 

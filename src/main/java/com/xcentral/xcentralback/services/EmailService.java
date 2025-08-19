@@ -32,23 +32,31 @@ public class EmailService {
     private UserRepo userRepo;
 
     public void sendConfirmationEmail(MailBody mailBody, String token) {
-        logger.info("Attempting to send confirmation email to: {}", mailBody.getTo());
+        logger.info("EmailService.sendConfirmationEmail called for: {}", mailBody.getTo());
+        logger.info("Token: {}", token);
+        logger.info("Base URL: {}", baseUrl);
+        
         if (userRepo.findByEmail(mailBody.getTo()).isPresent()) {
+            logger.info("User found in database, proceeding to send email");
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
                 message.setTo(mailBody.getTo());
                 message.setFrom("xcentralmail@gmail.com");
                 message.setSubject("Do Not Reply - Email Confirmation");
                 String confirmationLink = baseUrl + "/users/confirm?token=" + token;
+                logger.info("Confirmation link: {}", confirmationLink);
                 message.setText("Thank you for registering! Please confirm your email by clicking the link below:\n"
                         + confirmationLink + "\nIf you did not request this, please ignore this email.");
+                
+                logger.info("About to send email via JavaMailSender");
                 javaMailSender.send(message);
-                logger.info("Confirmation email sent successfully to: {}", mailBody.getTo());
+                logger.info("Email sent successfully via JavaMailSender");
             } catch (Exception e) {
-                logger.error("Failed to send confirmation email to {}: {}", mailBody.getTo(), e.getMessage());
+                logger.error("Exception in sendConfirmationEmail: {}", e.getMessage(), e);
                 throw new RuntimeException("Failed to send confirmation email", e);
             }
         } else {
+            logger.error("User with email {} not found in database for confirmation email", mailBody.getTo());
             throw new IllegalArgumentException("User with email " + mailBody.getTo() + " does not exist.");
         }
     }
