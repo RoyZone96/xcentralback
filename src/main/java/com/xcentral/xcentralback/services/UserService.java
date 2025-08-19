@@ -56,40 +56,44 @@ public class UserService {
                 logger.warn("Email already exists: {}", user.getEmail());
                 return "Email already exists.";
             }
-        
 
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
-        user.setEnabled(false);
-        userRepo.save(user);
+            String hashedPassword = passwordEncoder.encode(user.getPassword());
+            user.setPassword(hashedPassword);
+            user.setEnabled(false);
+            userRepo.save(user);
 
-        String token = java.util.UUID.randomUUID().toString();
-        java.util.Date expiryDate = new java.util.Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 1 day from
-                                                                                                          // now
-        Verification verification = new Verification(
-                token,
-                expiryDate,
-                user);
-        verificationRepo.save(verification);
-        MailBody mailBody = MailBody.builder()
-                .to(user.getEmail())
-                .subject("Do Not Reply-Email Verification")
-                .text("To verify your email, please click the link below:\n" +
-                        frontendUrl + "/verify?token=" + token)
-                .build();
+            String token = java.util.UUID.randomUUID().toString();
+            java.util.Date expiryDate = new java.util.Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 1 day
+                                                                                                              // from
+                                                                                                              // now
+            Verification verification = new Verification(
+                    token,
+                    expiryDate,
+                    user);
+            verificationRepo.save(verification);
+            MailBody mailBody = MailBody.builder()
+                    .to(user.getEmail())
+                    .subject("Do Not Reply-Email Verification")
+                    .text("To verify your email, please click the link below:\n" +
+                            frontendUrl + "/verify?token=" + token)
+                    .build();
 
-        try {
-            logger.info("Attempting to send confirmation email to: {}", user.getEmail());
-            emailService.sendConfirmationEmail(mailBody, token);
-            logger.info("Confirmation email sent successfully to: {}", user.getEmail());
-        } catch (Exception emailException) {
-            logger.error("Failed to send confirmation email to {}: {}", user.getEmail(), emailException.getMessage(), emailException);
-            // Don't fail the entire registration if email fails
-            return "User registered successfully, but email confirmation failed. Please contact support.";
-        }
-        
-        return "New user added successfully! Please check your email for verification.";
-    } catch(IllegalArgumentException e ){
+            try {
+                logger.info("Attempting to send confirmation email to: {}", user.getEmail());
+                logger.info("EmailService instance: {}", emailService != null ? "NOT NULL" : "NULL");
+                logger.info("MailBody content: to={}, subject={}", user.getEmail(), mailBody.getSubject());
+                emailService.sendConfirmationEmail(mailBody, token);
+                logger.info("Confirmation email sent successfully to: {}", user.getEmail());
+            } catch (Exception emailException) {
+                logger.error("Failed to send confirmation email to {}: {}", user.getEmail(),
+                        emailException.getMessage(), emailException);
+                logger.error("Exception class: {}", emailException.getClass().getName());
+                // Don't fail the entire registration if email fails
+                return "User registered successfully, but email confirmation failed. Please contact support.";
+            }
+
+            return "New user added successfully! Please check your email for verification.";
+        } catch (IllegalArgumentException e) {
             logger.error("Error adding new user: {}", e.getMessage());
             return "Error adding new user: " + e.getMessage();
         } catch (Exception e) {
