@@ -1,6 +1,5 @@
 package com.xcentral.xcentralback.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ public class CourierEmailService {
 
     private final RestTemplate restTemplate;
 
-    @Autowired
     public CourierEmailService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }

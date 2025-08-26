@@ -38,9 +38,6 @@ public class UserService {
     @Autowired
     private CourierEmailService courierEmailService;
 
-    @Autowired
-    private PasswordService passwordService;
-
     public String addNewUser(User user) {
         logger.info("Adding new user: {}", user.getUsername());
 
