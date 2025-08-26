@@ -45,8 +45,11 @@ public class CourierEmailService {
         String confirmationLink = baseUrl + "/users/confirm?token=" + token;
         
         Map<String, Object> emailData = new HashMap<>();
-        emailData.put("to", createRecipient(recipientEmail));
-        emailData.put("content", createConfirmationContent(confirmationLink));
+        emailData.put("recipient", recipientEmail);
+        
+        Map<String, Object> message = new HashMap<>();
+        message.put("content", createConfirmationContent(confirmationLink));
+        emailData.put("message", message);
 
         sendEmail(emailData, "confirmation email");
     }
@@ -61,16 +64,13 @@ public class CourierEmailService {
         String resetLink = frontendUrl + "/otpEntry";
         
         Map<String, Object> emailData = new HashMap<>();
-        emailData.put("to", createRecipient(recipientEmail));
-        emailData.put("content", createPasswordResetContent(otp, resetLink));
+        emailData.put("recipient", recipientEmail);
+        
+        Map<String, Object> message = new HashMap<>();
+        message.put("content", createPasswordResetContent(otp, resetLink));
+        emailData.put("message", message);
 
         sendEmail(emailData, "password reset email");
-    }
-
-    private Map<String, Object> createRecipient(String email) {
-        Map<String, Object> recipient = new HashMap<>();
-        recipient.put("email", email);
-        return recipient;
     }
 
     private Map<String, Object> createConfirmationContent(String confirmationLink) {
@@ -142,7 +142,7 @@ public class CourierEmailService {
         logger.info("Sending test email via Courier to: {}", recipientEmail);
 
         Map<String, Object> emailData = new HashMap<>();
-        emailData.put("to", createRecipient(recipientEmail));
+        emailData.put("recipient", recipientEmail);
         
         Map<String, Object> content = new HashMap<>();
         content.put("title", "Test Email from XCentral");
@@ -153,7 +153,10 @@ public class CourierEmailService {
             "Best regards,\nXCentral Team",
             java.time.LocalDateTime.now()
         ));
-        emailData.put("content", content);
+        
+        Map<String, Object> message = new HashMap<>();
+        message.put("content", content);
+        emailData.put("message", message);
 
         sendEmail(emailData, "test email");
     }
