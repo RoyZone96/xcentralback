@@ -6,8 +6,7 @@ import com.xcentral.xcentralback.models.User;
 import com.xcentral.xcentralback.models.Verification;
 import com.xcentral.xcentralback.services.UserService;
 import com.xcentral.xcentralback.services.FileUploadService;
-import com.xcentral.xcentralback.services.EmailService;
-import com.xcentral.xcentralback.models.MailBody;
+import com.xcentral.xcentralback.services.CourierEmailService;
 import com.xcentral.xcentralback.repos.UserRepo;
 import com.xcentral.xcentralback.repos.VerificationRepo;
 import com.xcentral.xcentralback.services.AuthRequest;
@@ -65,7 +64,7 @@ public class UserController {
     FileUploadService fileUploadService;
 
     @Autowired
-    EmailService emailService;
+    CourierEmailService courierEmailService;
 
     @Autowired
     JWTServices jwtServices;
@@ -288,12 +287,7 @@ public class UserController {
         java.util.Date expiry = new java.util.Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 24h
         Verification verification = new Verification(token, expiry, user);
         verificationRepo.save(verification);
-        MailBody mailBody = MailBody.builder()
-                .to(email)
-                .subject("Email Confirmation")
-                .text("") // Not used, see EmailService
-                .build();
-        emailService.sendConfirmationEmail(mailBody, token);
+        courierEmailService.sendConfirmationEmail(email, token);
         return ResponseEntity.ok("Confirmation email resent.");
     }
 

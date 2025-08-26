@@ -5,16 +5,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.xcentral.xcentralback.models.ForgotPassword;
 import com.xcentral.xcentralback.models.ChangePassword;
-import com.xcentral.xcentralback.models.MailBody;
 import com.xcentral.xcentralback.models.User;
 
 import com.xcentral.xcentralback.repos.ForgotPasswordRepo;
 import com.xcentral.xcentralback.repos.UserRepo;
 
-import com.xcentral.xcentralback.services.EmailService;
+import com.xcentral.xcentralback.services.CourierEmailService;
 
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -33,6 +30,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,7 +42,7 @@ public class ForgotPasswordController {
     private UserRepo userRepo;
 
     @Autowired
-    private EmailService emailService;
+    private CourierEmailService courierEmailService;
 
     @Autowired
     private ForgotPasswordRepo forgotPasswordRepo;
@@ -55,12 +53,18 @@ public class ForgotPasswordController {
     @PersistenceContext
     private EntityManager entityManager;
 
+    // Simple email validation using regex
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+    );
+
+    private boolean isValidEmail(String email) {
+        return email != null && EMAIL_PATTERN.matcher(email).matches();
+    }
+
     @PostMapping("/verifyMail/{email}")
     public ResponseEntity<?> verifyEmail(@PathVariable String email) {
-        try {
-            InternetAddress emailAddr = new InternetAddress(email);
-            emailAddr.validate();
-        } catch (AddressException ex) {
+        if (!isValidEmail(email)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid email address: " + email);
         }
 
@@ -69,12 +73,6 @@ public class ForgotPasswordController {
 
         int otp = otpGenerator();
 
-        MailBody mailBody = MailBody.builder()
-                .to(email)
-                .subject("OTP for password reset")
-                .text("Here is the OTP to reset your password: " + otp)
-                .build();
-
         ForgotPassword fp = ForgotPassword.builder()
                 .otp(otp)
                 .expiryTime(new Date(System.currentTimeMillis() + 60 * 60 * 1000)) // Set expiry time to 1 hour
@@ -82,7 +80,7 @@ public class ForgotPasswordController {
                 .build();
 
         forgotPasswordRepo.save(fp);
-        emailService.sendPasswordResetEmail(mailBody, otp);
+        courierEmailService.sendPasswordResetEmail(email, otp);
 
         return ResponseEntity.ok("OTP sent to email: " + email);
     }

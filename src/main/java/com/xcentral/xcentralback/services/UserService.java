@@ -1,12 +1,10 @@
 package com.xcentral.xcentralback.services;
 
 import com.xcentral.xcentralback.exceptions.UserNotFoundException;
-import com.xcentral.xcentralback.models.MailBody;
 import com.xcentral.xcentralback.models.User;
 import com.xcentral.xcentralback.models.Verification;
 import com.xcentral.xcentralback.repos.UserRepo;
 import com.xcentral.xcentralback.repos.VerificationRepo;
-import com.xcentral.xcentralback.services.PasswordService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +36,7 @@ public class UserService {
     private VerificationRepo verificationRepo;
 
     @Autowired
-    private EmailService emailService;
+    private CourierEmailService courierEmailService;
 
     @Autowired
     private PasswordService passwordService;
@@ -71,18 +69,11 @@ public class UserService {
                     expiryDate,
                     user);
             verificationRepo.save(verification);
-            MailBody mailBody = MailBody.builder()
-                    .to(user.getEmail())
-                    .subject("Do Not Reply-Email Verification")
-                    .text("To verify your email, please click the link below:\n" +
-                            frontendUrl + "/verify?token=" + token)
-                    .build();
 
             try {
                 logger.info("Attempting to send confirmation email to: {}", user.getEmail());
-                logger.info("EmailService instance: {}", emailService != null ? "NOT NULL" : "NULL");
-                logger.info("MailBody content: to={}, subject={}", user.getEmail(), mailBody.getSubject());
-                emailService.sendConfirmationEmail(mailBody, token);
+                logger.info("CourierEmailService instance: {}", courierEmailService != null ? "NOT NULL" : "NULL");
+                courierEmailService.sendConfirmationEmail(user.getEmail(), token);
                 logger.info("Confirmation email sent successfully to: {}", user.getEmail());
             } catch (Exception emailException) {
                 logger.error("Failed to send confirmation email to {}: {}", user.getEmail(),

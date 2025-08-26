@@ -3,9 +3,6 @@ package com.xcentral.xcentralback.services;
 import com.xcentral.xcentralback.models.MailBody;
 import com.xcentral.xcentralback.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,20 +13,7 @@ public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     @Autowired
-    private final JavaMailSender javaMailSender;
-
-    @Value("${app.base-url}")
-    private String baseUrl;
-
-    @Value("${app.frontend-url}")
-    private String frontendUrl;
-
-    @Value("${courier.auth-token:}")
-    private String courierAuthToken;
-
-    public EmailService(JavaMailSender javaMailSender) {
-        this.javaMailSender = javaMailSender;
-    }
+    private CourierEmailService courierEmailService;
 
     @Autowired
     private UserRepo userRepo;
@@ -37,18 +21,15 @@ public class EmailService {
     public void sendConfirmationEmail(MailBody mailBody, String token) {
         logger.info("EmailService.sendConfirmationEmail called for: {}", mailBody.getTo());
         logger.info("Token: {}", token);
-        logger.info("Base URL: {}", baseUrl);
         
         if (userRepo.findByEmail(mailBody.getTo()).isPresent()) {
-            logger.info("User found in database, proceeding to send email");
+            logger.info("User found in database, proceeding to send confirmation email");
             
-            // For now, using Spring Mail as primary method
-            // Courier integration will be added once proper SDK setup is confirmed
             try {
-                sendConfirmationEmailWithSpringMail(mailBody, token);
-                logger.info("Confirmation email sent successfully via Spring Mail to: {}", mailBody.getTo());
+                courierEmailService.sendConfirmationEmail(mailBody.getTo(), token);
+                logger.info("Confirmation email sent successfully via Courier to: {}", mailBody.getTo());
             } catch (Exception e) {
-                logger.error("Exception in sendConfirmationEmail: {}", e.getMessage(), e);
+                logger.error("Failed to send confirmation email: {}", e.getMessage(), e);
                 throw new RuntimeException("Failed to send confirmation email", e);
             }
         } else {
@@ -57,28 +38,13 @@ public class EmailService {
         }
     }
 
-    private void sendConfirmationEmailWithSpringMail(MailBody mailBody, String token) {
-        logger.info("Attempting to send confirmation email via Spring Mail");
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(mailBody.getTo());
-        message.setFrom("xcentralmail@gmail.com");
-        message.setSubject("Do Not Reply - Email Confirmation");
-        String confirmationLink = baseUrl + "/users/confirm?token=" + token;
-        logger.info("Confirmation link: {}", confirmationLink);
-        message.setText("Thank you for registering! Please confirm your email by clicking the link below:\n"
-                + confirmationLink + "\nIf you did not request this, please ignore this email.");
-        
-        logger.info("About to send email via JavaMailSender");
-        javaMailSender.send(message);
-        logger.info("Email sent successfully via JavaMailSender");
-    }
-
     public void sendPasswordResetEmail(MailBody mailBody, int otp) {
         logger.info("Attempting to send password reset email to: {}", mailBody.getTo());
+        
         if (userRepo.findByEmail(mailBody.getTo()).isPresent()) {
             try {
-                sendPasswordResetEmailWithSpringMail(mailBody, otp);
-                logger.info("Password reset email sent successfully via Spring Mail to: {}", mailBody.getTo());
+                courierEmailService.sendPasswordResetEmail(mailBody.getTo(), otp);
+                logger.info("Password reset email sent successfully via Courier to: {}", mailBody.getTo());
             } catch (Exception e) {
                 logger.error("Failed to send password reset email to {}: {}", mailBody.getTo(), e.getMessage(), e);
                 throw new RuntimeException("Failed to send password reset email", e);
@@ -89,29 +55,25 @@ public class EmailService {
         }
     }
 
-    private void sendPasswordResetEmailWithSpringMail(MailBody mailBody, int otp) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(mailBody.getTo());
-        message.setFrom("xcentralmail@gmail.com");
-        message.setSubject("Do Not Reply-Password Reset Request");
-        message.setText("To reset your password, please click the link below and enter the OTP:" + otp + "\n" +
-                frontendUrl + "/otpEntry");
-        javaMailSender.send(message);
+    public void sendTestEmail(String email) {
+        logger.info("=== EMAIL TEST STARTING ===");
+        logger.info("Sending test email to: {}", email);
+        
+        try {
+            courierEmailService.sendTestEmail(email);
+            logger.info("=== TEST EMAIL SENT SUCCESSFULLY VIA COURIER ===");
+        } catch (Exception e) {
+            logger.error("=== TEST EMAIL FAILED ===");
+            logger.error("Error details: {}", e.getMessage(), e);
+            throw new RuntimeException("Test email failed: " + e.getMessage(), e);
+        }
     }
 
-    // TODO: Implement Courier integration once SDK compatibility is confirmed
-    // The current Courier Java SDK v3 requires specific setup that needs to be verified
-    // For now, Spring Mail provides reliable email functionality
-    
     public boolean isCourierConfigured() {
-        return courierAuthToken != null && !courierAuthToken.trim().isEmpty();
+        return courierEmailService.isCourierConfigured();
     }
     
     public String getCourierStatus() {
-        if (isCourierConfigured()) {
-            return "Courier API key configured but integration pending SDK compatibility verification";
-        } else {
-            return "Courier not configured - using Spring Mail";
-        }
+        return courierEmailService.getStatus();
     }
 }
