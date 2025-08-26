@@ -45,10 +45,14 @@ public class CourierEmailService {
         String confirmationLink = baseUrl + "/users/confirm?token=" + token;
         
         Map<String, Object> emailData = new HashMap<>();
-        emailData.put("recipient", recipientEmail);
         
         Map<String, Object> message = new HashMap<>();
+        Map<String, Object> to = new HashMap<>();
+        to.put("email", recipientEmail);
+        
+        message.put("to", to);
         message.put("content", createConfirmationContent(confirmationLink));
+        
         emailData.put("message", message);
 
         sendEmail(emailData, "confirmation email");
@@ -64,10 +68,14 @@ public class CourierEmailService {
         String resetLink = frontendUrl + "/otpEntry";
         
         Map<String, Object> emailData = new HashMap<>();
-        emailData.put("recipient", recipientEmail);
         
         Map<String, Object> message = new HashMap<>();
+        Map<String, Object> to = new HashMap<>();
+        to.put("email", recipientEmail);
+        
+        message.put("to", to);
         message.put("content", createPasswordResetContent(otp, resetLink));
+        
         emailData.put("message", message);
 
         sendEmail(emailData, "password reset email");
@@ -142,7 +150,12 @@ public class CourierEmailService {
         logger.info("Sending test email via Courier to: {}", recipientEmail);
 
         Map<String, Object> emailData = new HashMap<>();
-        emailData.put("recipient", recipientEmail);
+        
+        Map<String, Object> message = new HashMap<>();
+        Map<String, Object> to = new HashMap<>();
+        to.put("email", recipientEmail);
+        
+        message.put("to", to);
         
         Map<String, Object> content = new HashMap<>();
         content.put("title", "Test Email from XCentral");
@@ -154,7 +167,6 @@ public class CourierEmailService {
             java.time.LocalDateTime.now()
         ));
         
-        Map<String, Object> message = new HashMap<>();
         message.put("content", content);
         emailData.put("message", message);
 
