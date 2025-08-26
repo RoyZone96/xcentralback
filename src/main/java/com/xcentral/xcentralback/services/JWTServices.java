@@ -24,7 +24,7 @@ import com.xcentral.xcentralback.models.User;
 @Component
 public class JWTServices {
 
-    @Value("${jwt.secret:yourNewLongerSecretKeyHereMakeSureItIsAtLeast32BytesLongAndSecure}")
+    @Value("${jwt.secret}")
     private String SECRET;
 
     @Value("${jwt.expiration:36000}")
@@ -80,7 +80,18 @@ public class JWTServices {
     }
 
     private Key getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
-        return Keys.hmacShaKeyFor(keyBytes);
+        try {
+            if (SECRET == null || SECRET.trim().isEmpty()) {
+                throw new IllegalStateException("JWT secret is not configured. Please set the JWT_SECRET environment variable.");
+            }
+            
+            byte[] keyBytes = Decoders.BASE64.decode(SECRET);
+            if (keyBytes.length < 32) {
+                throw new IllegalStateException("JWT secret key is too short. Must be at least 32 bytes (256 bits) when BASE64 decoded.");
+            }
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("JWT secret is not valid BASE64. Please provide a valid BASE64 encoded secret that is at least 32 bytes when decoded.", e);
+        }
     }
 }
