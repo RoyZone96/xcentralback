@@ -18,7 +18,6 @@ public class GlobalCorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                     "https://xcentralfront-66xkgz8dx-royzone96s-projects.vercel.app",
-                    "https://xcentralfront-ciywa0xn1-royzone96s-projects.vercel.app",
                     "https://xcentralfront.vercel.app",
                     "http://localhost:3000",
                     "https://localhost:3000"
@@ -32,12 +31,7 @@ public class GlobalCorsConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource globalCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "https://xcentralfront*.vercel.app",
-            "https://*-royzone96s-projects.vercel.app",
-            "http://localhost:*",
-            "https://localhost:*"
-        ));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

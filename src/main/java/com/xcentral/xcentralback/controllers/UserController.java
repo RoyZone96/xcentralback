@@ -137,27 +137,131 @@ public class UserController {
     }
 
     @PostMapping("/authenticate")
-    public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<Map<String, Object>> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         logger.info("Authenticating user: {}", authRequest.getUsername());
-        Optional<User> userOptional = userRepo.findByUsername(authRequest.getUsername());
-        if (userOptional.isEmpty()) {
-            logger.warn("User not found: {}", authRequest.getUsername());
-            throw new UserNotFoundException("User not found");
+        logger.debug("Authentication request received for username: {}", authRequest.getUsername());
+        Map<String, Object> response = new java.util.HashMap<>();
+        
+        try {
+            // Validate request
+            if (authRequest.getUsername() == null || authRequest.getUsername().trim().isEmpty()) {
+                logger.warn("Empty username provided");
+                response.put("success", false);
+                response.put("message", "Username is required");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
+            if (authRequest.getPassword() == null || authRequest.getPassword().trim().isEmpty()) {
+                logger.warn("Empty password provided for user: {}", authRequest.getUsername());
+                response.put("success", false);
+                response.put("message", "Password is required");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
+            // Check if user exists
+            Optional<User> userOptional = userRepo.findByUsername(authRequest.getUsername());
+            if (userOptional.isEmpty()) {
+                logger.warn("User not found: {}", authRequest.getUsername());
+                response.put("success", false);
+                response.put("message", "Invalid username or password");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            
+            User user = userOptional.get();
+            logger.debug("Found user: {}, enabled: {}", user.getUsername(), user.isEnabled());
+            
+            // Check if account is enabled
+            if (!user.isEnabled()) {
+                logger.warn("Account disabled for user: {}", authRequest.getUsername());
+                response.put("success", false);
+                response.put("message", "Account is not verified. Please check your email and click the confirmation link.");
+                response.put("code", "ACCOUNT_NOT_VERIFIED");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+            
+            // Attempt authentication
+            logger.debug("Attempting authentication for user: {}", authRequest.getUsername());
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+            
+            if (authentication.isAuthenticated()) {
+                logger.info("User authenticated successfully: {}", authRequest.getUsername());
+                String token = jwtServices.generateToken(user);
+                response.put("success", true);
+                response.put("message", "Authentication successful");
+                response.put("token", token);
+                response.put("username", user.getUsername());
+                response.put("role", user.getRole());
+                return ResponseEntity.ok(response);
+            } else {
+                logger.warn("Authentication failed for user: {}", authRequest.getUsername());
+                response.put("success", false);
+                response.put("message", "Invalid username or password");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            logger.warn("Bad credentials for user: {} - {}", authRequest.getUsername(), e.getMessage());
+            response.put("success", false);
+            response.put("message", "Invalid username or password");
+            response.put("code", "INVALID_CREDENTIALS");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            
+        } catch (org.springframework.security.authentication.DisabledException e) {
+            logger.warn("Account disabled for user: {} - {}", authRequest.getUsername(), e.getMessage());
+            response.put("success", false);
+            response.put("message", "Account is disabled. Please contact support.");
+            response.put("code", "ACCOUNT_DISABLED");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            
+        } catch (org.springframework.security.authentication.LockedException e) {
+            logger.warn("Account locked for user: {} - {}", authRequest.getUsername(), e.getMessage());
+            response.put("success", false);
+            response.put("message", "Account is locked. Please contact support.");
+            response.put("code", "ACCOUNT_LOCKED");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            
+        } catch (Exception e) {
+            logger.error("Unexpected error during authentication for user: {} - {}", 
+                authRequest.getUsername(), e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "An error occurred during authentication. Please try again.");
+            response.put("code", "AUTHENTICATION_ERROR");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        User user = userOptional.get();
-        if (!user.isEnabled()) {
-            logger.warn("Account disabled for user: {}", authRequest.getUsername());
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Account is not enabled. Please verify your email.");
-        }
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-        if (authentication.isAuthenticated()) {
-            logger.info("User authenticated: {}", authRequest.getUsername());
-            return jwtServices.generateToken(user);
-        } else {
-            logger.warn("User not found: {}", authRequest.getUsername());
-            throw new UserNotFoundException("User not found");
+    }
+
+    @GetMapping("/status/{username}")
+    public ResponseEntity<Map<String, Object>> getUserStatus(@PathVariable String username) {
+        logger.info("Checking status for user: {}", username);
+        try {
+            Optional<User> userOptional = userRepo.findByUsername(username);
+            Map<String, Object> status = new java.util.HashMap<>();
+            
+            if (userOptional.isEmpty()) {
+                status.put("exists", false);
+                status.put("message", "User not found");
+                return ResponseEntity.ok(status);
+            }
+            
+            User user = userOptional.get();
+            status.put("exists", true);
+            status.put("enabled", user.isEnabled());
+            status.put("email", user.getEmail());
+            status.put("role", user.getRole());
+            
+            if (!user.isEnabled()) {
+                status.put("message", "Account not verified. Please check your email and click the confirmation link.");
+            } else {
+                status.put("message", "Account is active and verified");
+            }
+            
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            logger.error("Error checking user status: {}", e.getMessage());
+            Map<String, Object> errorStatus = new java.util.HashMap<>();
+            errorStatus.put("error", "Unable to check user status");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorStatus);
         }
     }
 

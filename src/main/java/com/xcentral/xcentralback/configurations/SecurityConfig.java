@@ -83,7 +83,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/health", "/ping", "/users/newuser", "/users/authenticate",
-                                "/users/confirm",
+                                "/users/confirm", "/users/status/**",
                                 "/users/resend-confirmation", "/users/check-availability", "/forgotPassword/**",
                                 "/users/username/**", "/users/email/**",
                                 "/submissions/sublist", "/submissions/sublist/**",
