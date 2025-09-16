@@ -124,6 +124,18 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/flagged-submissions/count")
+public ResponseEntity<?> getFlaggedSubmissionsCount() {
+    try {
+        List<Submission> flaggedSubmissions = subService.getFlaggedSubmissions();
+        return ResponseEntity.ok(flaggedSubmissions.size());
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error retrieving flagged submissions count: " + e.getMessage());
+    }
+}
+
+
     // Resolve flagged submission (admin action)
     @PutMapping("/submissions/{id}/resolve")
     public ResponseEntity<?> resolveSubmission(@PathVariable Long id) {
